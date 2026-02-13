@@ -1,0 +1,26 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <title>Box Cricket Booking</title>
+</head>
+<body>
+
+<nav>
+    <a href="/">Home</a>
+    <a href="/signup/">Signup</a>
+    <a href="/login/">Login</a>
+    <a href="/logout/">Logout</a>
+</nav>
+
+<hr>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>
