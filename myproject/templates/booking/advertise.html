@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">
+            <h2>Partner with Us - Advertisement & Sponsorship</h2>
+            <p style="color: #666; margin-top: 0.5rem;">Reach thousands of box cricket enthusiasts by sponsoring grounds or tournaments</p>
+        </div>
+        <div class="card-body">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; color: #721c24;">
+                        <strong>Error:</strong>
+                        {% for error in form.non_field_errors %}
+                            <p style="margin: 0.5rem 0 0 0;">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <!-- Brand Name -->
+                    <div class="form-group">
+                        <label for="{{ form.brand_name.id_for_label }}">{{ form.brand_name.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.brand_name }}
+                        {% if form.brand_name.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.brand_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Contact Person Name -->
+                    <div class="form-group">
+                        <label for="{{ form.contact_person_name.id_for_label }}">{{ form.contact_person_name.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.contact_person_name }}
+                        {% if form.contact_person_name.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.contact_person_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mobile Number -->
+                    <div class="form-group">
+                        <label for="{{ form.mobile_no.id_for_label }}">{{ form.mobile_no.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.mobile_no }}
+                        {% if form.mobile_no.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.mobile_no.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Promotion Type -->
+                    <div class="form-group">
+                        <label for="{{ form.promotion_type.id_for_label }}">{{ form.promotion_type.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.promotion_type }}
+                        {% if form.promotion_type.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.promotion_type.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Advertise Duration -->
+                    <div class="form-group">
+                        <label for="{{ form.advertise_duration.id_for_label }}">{{ form.advertise_duration.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.advertise_duration }}
+                        {% if form.advertise_duration.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.advertise_duration.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Company Details - Full Width -->
+                <div class="form-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
+                    <label for="{{ form.company_details.id_for_label }}">{{ form.company_details.label }} <span style="color: #c62828;">*</span></label>
+                    {{ form.company_details }}
+                    {% if form.company_details.errors %}
+                        <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                            {% for error in form.company_details.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+                    <button type="submit" class="btn" style="width: 100%;">Submit Sponsorship Request</button>
+                </div>
+            </form>
+
+            <!-- Info Boxes -->
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+                <h4>Why Sponsor With Us?</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                    <div style="background-color: #f9f9f9; padding: 1rem; border-radius: 4px;">
+                        <strong style="color: var(--primary-color);">🏟️ Ground Sponsorship</strong>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Brand visibility at all ground level events and bookings. Logo placement on courts and promotional materials.</p>
+                    </div>
+                    <div style="background-color: #f9f9f9; padding: 1rem; border-radius: 4px;">
+                        <strong style="color: var(--primary-color);">🏆 Tournament Sponsorship</strong>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Be the official sponsor of box cricket tournaments. Logo on tournament banners, trophies, and all promotional content.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div style="margin-top: 2rem; padding: 1.5rem; background-color: #f0f8ff; border-left: 4px solid var(--primary-color); border-radius: 4px;">
+                <h5>Questions? Contact Us</h5>
+                <p style="margin-top: 0.5rem; font-size: 0.95rem;">
+                    Email: <strong>sponsorship@goatcricket.com</strong><br>
+                    Phone: <strong>+91 98765 43210</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+</style>
+{% endblock %}

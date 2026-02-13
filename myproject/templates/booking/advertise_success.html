@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 4rem auto;">
+    <div class="card" style="text-align: center; padding: 3rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+        <h2>Thank You!</h2>
+        <p style="font-size: 1.1rem; color: #666; margin: 1.5rem 0;">Your sponsorship request has been successfully submitted.</p>
+        
+        <div style="background-color: #f9f9f9; padding: 1.5rem; border-radius: 4px; margin: 2rem 0; text-align: left;">
+            <h4>What's Next?</h4>
+            <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                <li style="margin: 0.7rem 0;"><strong>Review:</strong> Our team will review your sponsorship request within 48 hours.</li>
+                <li style="margin: 0.7rem 0;"><strong>Verification:</strong> We'll contact you via email or phone to verify the details.</li>
+                <li style="margin: 0.7rem 0;"><strong>Confirmation:</strong> Once approved, we'll send you a sponsorship agreement.</li>
+                <li style="margin: 0.7rem 0;"><strong>Activation:</strong> Your brand will be visible across our platform immediately upon agreement finalization.</li>
+            </ul>
+        </div>
+
+        <div style="background-color: #e8f5e9; padding: 1.5rem; border-radius: 4px; margin: 2rem 0; border-left: 4px solid var(--success-color);">
+            <p style="color: #2e7d32; font-weight: 500;">
+                💡 We typically respond to sponsorship requests within 48 hours. Please check your email for updates.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+            <a href="/" class="btn" style="display: inline-block;">Back to Home</a>
+            <a href="/booking/tournaments/" class="btn" style="display: inline-block; background-color: var(--accent-color);">View Tournaments</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

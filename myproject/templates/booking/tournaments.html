@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="margin: 2rem auto;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1>Upcoming Tournaments</h1>
+        <p style="color: #666; font-size: 1.1rem;">Showcase your skills and compete with the best! Join our box cricket tournaments.</p>
+    </div>
+
+    {% if tournaments %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem;">
+            {% for tournament in tournaments %}
+                <div class="card" style="border-left: 4px solid var(--primary-color);">
+                    <div style="padding: 1.5rem 0; border-bottom: 1px solid #e0e0e0;">
+                        <h3 style="margin: 0; color: var(--primary-color);">{{ tournament.name }}</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0 0 0;">📍 {{ tournament.venue.name }}, {{ tournament.venue.city }}</p>
+                    </div>
+
+                    <div style="padding: 1.5rem 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <p style="color: #666; font-size: 0.85rem; margin: 0;">📅 Date</p>
+                                <p style="font-weight: 500; margin: 0.3rem 0 0 0;">{{ tournament.start_date|date:"M d, Y" }}</p>
+                                {% if tournament.start_date != tournament.end_date %}
+                                    <p style="font-size: 0.9rem; color: #999;">to {{ tournament.end_date|date:"M d, Y" }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p style="color: #666; font-size: 0.85rem; margin: 0;">🕐 Start Time</p>
+                                <p style="font-weight: 500; margin: 0.3rem 0 0 0;">{{ tournament.start_time|time:"H:i" }}</p>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <p style="color: #666; font-size: 0.85rem; margin: 0;">👥 Max Teams</p>
+                                <p style="font-weight: 500; margin: 0.3rem 0 0 0;">{{ tournament.max_teams }} Teams</p>
+                            </div>
+                            <div>
+                                <p style="color: #666; font-size: 0.85rem; margin: 0;">💰 Entry Fee</p>
+                                <p style="font-weight: 500; margin: 0.3rem 0 0 0;">
+                                    {% if tournament.entry_fee > 0 %}
+                                        ₹{{ tournament.entry_fee }}
+                                    {% else %}
+                                        Free
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        {% if tournament.prize_pool %}
+                            <div style="background-color: #fff3cd; padding: 0.8rem; border-radius: 4px; margin-bottom: 1rem;">
+                                <p style="color: #856404; font-size: 0.85rem; margin: 0;">🏆 Prize Pool</p>
+                                <p style="font-weight: 500; color: #856404; margin: 0.3rem 0 0 0;">{{ tournament.prize_pool }}</p>
+                            </div>
+                        {% endif %}
+
+                        <div style="margin: 1rem 0;">
+                            <p style="color: #666; font-size: 0.85rem; margin: 0;">📝 Description</p>
+                            <p style="margin: 0.5rem 0 0 0; color: #555; font-size: 0.95rem;">{{ tournament.description|truncatewords:30 }}</p>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                            <div>
+                                <p style="color: #666; margin: 0;">Contact: <strong>{{ tournament.contact_person }}</strong></p>
+                            </div>
+                            <div>
+                                <p style="color: #666; margin: 0;"><a href="mailto:{{ tournament.contact_email }}" style="color: var(--primary-color); text-decoration: none;">{{ tournament.contact_email }}</a></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="padding-top: 1rem; border-top: 1px solid #e0e0e0; display: flex; gap: 1rem;">
+                        <button class="btn" style="flex: 1; background-color: var(--primary-color); color: white;">Register Now</button>
+                        <button class="btn" style="flex: 1; background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color);">More Info</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem; background-color: #f9f9f9; border-radius: 4px;">
+            <p style="font-size: 1.1rem; color: #666;">No upcoming tournaments at the moment.</p>
+            <p style="color: #999; margin-top: 0.5rem;">Check back soon for exciting tournaments!</p>
+            <a href="/booking/advertise/" class="btn" style="margin-top: 1.5rem;">Sponsor a Tournament</a>
+        </div>
+    {% endif %}
+
+    <!-- About Tournaments Section -->
+    <div style="margin-top: 4rem; padding: 2rem; background-color: #f0f8ff; border-radius: 4px;">
+        <h3>Why Join Our Tournaments?</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+            <div>
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                <strong>Fair Competition</strong>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">Competitive tournaments with fair rules and experienced umpires.</p>
+            </div>
+            <div>
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏆</div>
+                <strong>Great Prizes</strong>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">Win exciting prizes, trophies, and recognition from the community.</p>
+            </div>
+            <div>
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">👥</div>
+                <strong>Build Network</strong>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">Meet passionate players and grow your cricket network.</p>
+            </div>
+            <div>
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">⭐</div>
+                <strong>Professional Setup</strong>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">World-class venues and equipment for the best experience.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

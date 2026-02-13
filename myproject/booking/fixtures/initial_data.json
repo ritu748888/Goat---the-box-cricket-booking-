@@ -1,0 +1,162 @@
+[
+  {
+    "model": "booking.venue",
+    "pk": 1,
+    "fields": {
+      "name": "Greenfield Sports Center",
+      "address": "12 Park Lane, Bangalore",
+      "city": "Bangalore",
+      "phone": "+91-9876543210",
+      "email": "greenfield@sports.com",
+      "description": "Premium cricket venue with state-of-the-art facilities. Located in the heart of the city with excellent parking and amenities.",
+      "rating": 4.8
+    }
+  },
+  {
+    "model": "booking.venue",
+    "pk": 2,
+    "fields": {
+      "name": "Riverside Courts",
+      "address": "200 Riverside Road, Bangalore",
+      "city": "Bangalore",
+      "phone": "+91-9876543211",
+      "email": "riverside@courts.com",
+      "description": "Beautiful box cricket courts overlooking the river. Perfect for evening matches and weekend tournaments.",
+      "rating": 4.6
+    }
+  },
+  {
+    "model": "booking.venue",
+    "pk": 3,
+    "fields": {
+      "name": "City Sports Arena",
+      "address": "85 Main Street, Mumbai",
+      "city": "Mumbai",
+      "phone": "+91-9876543212",
+      "email": "citysports@arena.com",
+      "description": "Central location with modern facilities. Multiple courts available for tournaments and league matches.",
+      "rating": 4.5
+    }
+  },
+  {
+    "model": "booking.venue",
+    "pk": 4,
+    "fields": {
+      "name": "Elite Cricket Club",
+      "address": "50 Golf Course Road, Delhi",
+      "city": "Delhi",
+      "phone": "+91-9876543213",
+      "email": "elite@cricket.com",
+      "description": "Membership-based premium cricket club. State-of-the-art equipment and professional coaching available.",
+      "rating": 4.9
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 1,
+    "fields": {
+      "venue": 1,
+      "name": "Court A (Premium)",
+      "capacity": 8,
+      "price_per_hour": 1200.00,
+      "description": "Premium court with LED floodlights and turf pitch.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 2,
+    "fields": {
+      "venue": 1,
+      "name": "Court B (Standard)",
+      "capacity": 8,
+      "price_per_hour": 800.00,
+      "description": "Standard court with good lighting.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 3,
+    "fields": {
+      "venue": 1,
+      "name": "Court C (Budget)",
+      "capacity": 8,
+      "price_per_hour": 600.00,
+      "description": "Budget-friendly court.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 4,
+    "fields": {
+      "venue": 2,
+      "name": "Court 1 (Riverside)",
+      "capacity": 8,
+      "price_per_hour": 1000.00,
+      "description": "River-side court with scenic views.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 5,
+    "fields": {
+      "venue": 2,
+      "name": "Court 2 (Evening)",
+      "capacity": 8,
+      "price_per_hour": 900.00,
+      "description": "Good for evening matches.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 6,
+    "fields": {
+      "venue": 3,
+      "name": "Court 1",
+      "capacity": 8,
+      "price_per_hour": 950.00,
+      "description": "City arena main court.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 7,
+    "fields": {
+      "venue": 3,
+      "name": "Court 2",
+      "capacity": 8,
+      "price_per_hour": 950.00,
+      "description": "City arena secondary court.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 8,
+    "fields": {
+      "venue": 4,
+      "name": "Elite Court 1 (Championship)",
+      "capacity": 8,
+      "price_per_hour": 1500.00,
+      "description": "Championship-grade court with professional pitch.",
+      "is_active": true
+    }
+  },
+  {
+    "model": "booking.court",
+    "pk": 9,
+    "fields": {
+      "venue": 4,
+      "name": "Elite Court 2 (Training)",
+      "capacity": 8,
+      "price_per_hour": 1200.00,
+      "description": "Training facility with coaching support.",
+      "is_active": true
+    }
+  }
+]

@@ -1,14 +1,69 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
-    <h2>Login</h2>
+<div class="container" style="max-width: 500px; margin-top: 50px;">
+    <div class="card">
+        <div class="card-header">
+            <h2>Login to Box Cricket Booking</h2>
+        </div>
+        <div class="card-body">
+            <div style="background-color: #e3f2fd; border-left: 4px solid var(--primary-color); padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
+                <p style="color: #1565c0; margin: 0; font-size: 0.95rem;">
+                    <strong>ℹ️ Login Info:</strong> Admin users will be directed to the admin panel. Regular users will go to the home page.
+                </p>
+            </div>
 
-    <form method="POST">
-        {% csrf_token %}
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-    </form>
+            {% if form.non_field_errors %}
+                <div style="background-color: #fee; border: 1px solid #f88; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; color: #c33;">
+                    <strong>Login Error:</strong>
+                    {% for error in form.non_field_errors %}
+                        <p style="margin: 0.5rem 0 0 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Email Address</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div style="color: #c33; font-size: 0.9rem; margin-top: 0.3rem;">
+                            {% for error in form.username.errors %}
+                                <p style="margin: 0.2rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div style="color: #c33; font-size: 0.9rem; margin-top: 0.3rem;">
+                            {% for error in form.password.errors %}
+                                <p style="margin: 0.2rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 2rem; background-color: #f9f9f9;">
+        <p style="margin: 0; color: #666; font-size: 0.95rem;">
+            <strong>Test Account:</strong><br><br>
+            Email: <code style="background: white; padding: 0.2rem 0.4rem; border-radius: 2px; font-family: monospace;">admin@test.com</code><br>
+            Password: <code style="background: white; padding: 0.2rem 0.4rem; border-radius: 2px; font-family: monospace;">admin123</code>
+        </p>
+    </div>
+
+    <p style="text-align: center; margin-top: 1.5rem;">
+        Don't have an account? <a href="{% url 'signup' %}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Sign up here</a>
+    </p>
 </div>
 {% endblock %}

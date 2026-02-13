@@ -1,12 +1,44 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Welcome to Box Cricket Booking</h2>
+<header class="hero">
+    <div class="hero-inner container">
+        <div class="hero-text">
+            <h1>Book Box Cricket Courts Quickly</h1>
+            <p>Find nearby venues, pick a court and time slot, and confirm your booking in seconds.</p>
+            <div class="hero-cta">
+                {% if user.is_authenticated %}
+                    <a class="btn" href="/booking/create/">Book Now</a>
+                    <a class="btn btn-outline" href="/booking/">My Bookings</a>
+                {% else %}
+                    <a class="btn" href="/signup/">Get Started</a>
+                    <a class="btn btn-outline" href="/login/">Login</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="hero-visual">
+            <!-- Placeholder: add an image or SVG here if available -->
+            <div class="court-illustration">🏏</div>
+        </div>
+    </div>
+</header>
 
-{% if user.is_authenticated %}
-    <p>Welcome, {{ user.username }}</p>
-{% else %}
-    <p>Please login or signup</p>
-{% endif %}
+<section class="features container">
+    <h2>How it works</h2>
+    <div class="feature-grid">
+        <div class="feature">
+            <h3>Search Venues</h3>
+            <p>Browse venues and available courts near you.</p>
+        </div>
+        <div class="feature">
+            <h3>Select Time</h3>
+            <p>Choose an available slot that fits your schedule.</p>
+        </div>
+        <div class="feature">
+            <h3>Confirm & Play</h3>
+            <p>Pay (optional) and turn up to play.</p>
+        </div>
+    </div>
+</section>
 
 {% endblock %}

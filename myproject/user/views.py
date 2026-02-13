@@ -1,46 +1,75 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.views import LoginView
 from django.contrib import messages
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from django.contrib.auth.decorators import login_required
+
 
 def signup_view(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists")
-            return redirect('signup')
-
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        return redirect('login')
-
-    return render(request, 'signup.html')
-
-
-def login_view(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
             login(request, user)
+            messages.success(request, 'Account created successfully! Welcome!')
             return redirect('home')
         else:
-            messages.error(request, "Invalid credentials")
-            return redirect('login')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'signup.html', {'form': form})
 
-    return render(request, 'login.html')
+
+class CustomLoginView(LoginView):
+    template_name = 'login.html'
+    authentication_form = CustomAuthenticationForm
+    
+    def form_invalid(self, form):
+        messages.error(self.request, 'Invalid email or password. Please try again.')
+        return super().form_invalid(form)
+    
+    def form_valid(self, form):
+        user = form.get_user()
+        messages.success(self.request, f'Welcome back, {user.get_full_name() or user.email}!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        user = self.request.user
+        # If user is admin/staff, redirect to admin panel
+        if user.is_staff or user.is_superuser:
+            return '/admin/'
+        # Otherwise redirect to home page
+        return '/'
 
 
+def logout_view(request):
+    messages.success(request, 'You have been logged out successfully.')
+    logout(request)
+    return redirect('login')
+
+
+@login_required
 def home_view(request):
     return render(request, 'home.html')
 
 
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+@login_required
+def profile_view(request):
+    # Get user's bookings with proper calculations
+    bookings = request.user.bookings.all().order_by('-date', '-start_time')
+    
+    # Calculate total price for each booking if not already set
+    for booking in bookings:
+        if not booking.total_price or booking.total_price == 0:
+            booking.calculate_price()
+            booking.save()
+    
+    context = {
+        'bookings': bookings,
+        'total_bookings': bookings.count(),
+        'confirmed_bookings': bookings.filter(status='confirmed').count(),
+    }
+    return render(request, 'profile.html', context)

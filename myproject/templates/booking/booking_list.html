@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Your Bookings</h2>
+    <p><a href="{% url 'booking_create' %}">Create new booking</a></p>
+    {% if bookings %}
+        <ul>
+            {% for b in bookings %}
+                <li>
+                    <a href="{% url 'booking_detail' b.pk %}">{{ b.court }} on {{ b.date }} ({{ b.start_time }} - {{ b.end_time }})</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No bookings yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

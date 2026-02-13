@@ -1,0 +1,6 @@
+Django==6.0.2
+djangorestframework==3.14.0
+django-cors-headers==4.3.0
+Pillow==10.1.0
+python-dateutil==2.8.2
+pytz==2023.3

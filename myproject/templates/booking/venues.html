@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Venues</h2>
+    {% if venues %}
+        <ul>
+            {% for v in venues %}
+                <li>
+                    <a href="{% url 'venue_detail' v.pk %}">{{ v.name }}</a>
+                    <p>{{ v.address|truncatechars:80 }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No venues yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
