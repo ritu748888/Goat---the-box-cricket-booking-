@@ -162,3 +162,73 @@ class Tournament(models.Model):
     def is_upcoming(self):
         from datetime import date
         return self.start_date >= date.today()
+
+class Payment(models.Model):
+    PAYMENT_METHOD_CHOICES = (
+        ('upi', 'UPI'),
+        ('paytm', 'PayTM'),
+        ('phonepay', 'PhonePay'),
+        ('googlepay', 'Google Pay'),
+        ('credit_card', 'Credit Card'),
+        ('debit_card', 'Debit Card'),
+        ('crypto', 'Cryptocurrency'),
+    )
+    
+    PAYMENT_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    TRANSACTION_TYPE_CHOICES = (
+        ('booking', 'Booking'),
+        ('advertisement', 'Advertisement'),
+        ('sponsorship', 'Sponsorship'),
+    )
+    
+    # Core fields
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='payments', on_delete=models.CASCADE)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES)
+    
+    # Foreign keys (one will be set depending on transaction type)
+    booking = models.OneToOneField(Booking, null=True, blank=True, related_name='payment', on_delete=models.CASCADE)
+    advertisement = models.OneToOneField(Advertisement, null=True, blank=True, related_name='payment', on_delete=models.CASCADE)
+    tournament = models.OneToOneField(Tournament, null=True, blank=True, related_name='payment', on_delete=models.CASCADE)
+    
+    # Payment details
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    
+    # Admin review
+    admin_notes = models.TextField(blank=True)
+    admin_approved = models.BooleanField(default=False)
+    admin_approved_at = models.DateTimeField(null=True, blank=True)
+    admin_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='approved_payments', on_delete=models.SET_NULL)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['transaction_type', 'status']),
+        ]
+    
+    def __str__(self):
+        return f"Payment {self.transaction_id} - {self.user.email} ({self.status})"
+    
+    def get_related_object(self):
+        """Get the related object (booking, advertisement, or tournament)"""
+        if self.booking:
+            return self.booking
+        elif self.advertisement:
+            return self.advertisement
+        elif self.tournament:
+            return self.tournament
+        return None
