@@ -38,11 +38,33 @@ class CustomLoginView(LoginView):
     
     def get_success_url(self):
         user = self.request.user
-        # If user is admin/staff, redirect to admin panel
+        from django.conf import settings
+        # If the account email matches the configured ADMIN_EMAIL redirect to
+        # the custom booking request dashboard so the admin can act quickly.
+        if user.email == getattr(settings, 'ADMIN_EMAIL', ''):
+            return '/booking/admin/dashboard/'
+        # fall back to standard django admin for staff/superusers
         if user.is_staff or user.is_superuser:
             return '/admin/'
-        # Otherwise redirect to home page
+        # Otherwise send normal users to home page
         return '/'
+
+
+class AdminLoginView(CustomLoginView):
+    """Dedicated admin login page that only allows the admin email."""
+    def form_valid(self, form):
+        # ensure the user is the administrator
+        user = form.get_user()
+        from django.conf import settings
+        if user.email != getattr(settings, 'ADMIN_EMAIL', '') and not user.is_staff:
+            messages.error(self.request, 'Not authorized as admin.')
+            return redirect('admin_login')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['admin_login'] = True
+        return ctx
 
 
 def logout_view(request):

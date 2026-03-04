@@ -6,6 +6,6 @@
     <p><strong>Court:</strong> {{ booking.court }}</p>
     <p><strong>Date:</strong> {{ booking.date }}</p>
     <p><strong>Time:</strong> {{ booking.start_time }} - {{ booking.end_time }}</p>
-    <p><strong>Status:</strong> {{ booking.status }}</p>
+    <p><strong>Status:</strong> {{ booking.get_status_display }}</p>
 </div>
 {% endblock %}

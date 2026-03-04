@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Administrator – Booking Dashboard</h2>
+    {% if bookings %}
+        <table class="booking-table" style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Court</th>
+                    <th>Date / Time</th>
+                    <th>Players</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr style="border-bottom:1px solid #ccc;">
+                    <td>{{ b.user.email }}</td>
+                    <td>{{ b.court }}</td>
+                    <td>{{ b.date }}<br>{{ b.start_time }} - {{ b.end_time }}</td>
+                    <td>{{ b.number_of_players }}</td>
+                    <td>{{ b.get_status_display }}</td>
+                    <td>
+                        {% if b.status == 'pending' %}
+                            <a class="btn" href="{% url 'admin_update_booking' b.pk 'confirm' %}">Confirm</a>
+                            <a class="btn" style="background:#f44336;" href="{% url 'admin_update_booking' b.pk 'cancel' %}">Cancel</a>
+                        {% else %}
+                            &mdash;
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No booking requests to display.</p>
+    {% endif %}
+</div>
+<div class="container" style="margin-top: 2rem;">
+    <h2>Pending Advertisements</h2>
+    {% if ads %}
+        <table style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Contact</th>
+                    <th>Type</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in ads %}
+                <tr style="border-bottom:1px solid #ccc;">
+                    <td>{{ a.brand_name }}</td>
+                    <td>{{ a.contact_person_name }}<br>{{ a.email }}<br>{{ a.mobile_no }}</td>
+                    <td>{{ a.get_promotion_type_display }}</td>
+                    <td>{{ a.created_at }}</td>
+                    <td>
+                        <a class="btn" href="{% url 'admin_update_advertisement' a.pk 'approve' %}">Approve</a>
+                        <a class="btn" style="background:#f44336;" href="{% url 'admin_update_advertisement' a.pk 'reject' %}">Reject</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No advertisement requests.</p>
+    {% endif %}
+</div>
+
+<div class="container" style="margin-top: 2rem;">
+    <h2>Tournaments</h2>
+    {% if tournaments %}
+        <table style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Venue</th>
+                    <th>Dates</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tournaments %}
+                <tr style="border-bottom:1px solid #ccc;">
+                    <td>{{ t.name }}</td>
+                    <td>{{ t.venue.name }}</td>
+                    <td>{{ t.start_date }} - {{ t.end_date }}</td>
+                    <td>{{ t.contact_person }}<br>{{ t.contact_email }}<br>{{ t.contact_phone }}</td>
+                    <td>{{ t.get_status_display }}</td>
+                    <td>
+                        {% if t.status != 'cancelled' %}
+                            <a class="btn" href="{% url 'admin_update_tournament' t.pk 'confirm' %}">Confirm</a>
+                            <a class="btn" style="background:#f44336;" href="{% url 'admin_update_tournament' t.pk 'reject' %}">Reject</a>
+                        {% else %}
+                            &mdash;
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No tournaments to manage.</p>
+    {% endif %}
+</div>
+{% endblock %}

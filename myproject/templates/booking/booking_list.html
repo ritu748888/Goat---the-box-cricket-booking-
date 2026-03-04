@@ -9,6 +9,7 @@
             {% for b in bookings %}
                 <li>
                     <a href="{% url 'booking_detail' b.pk %}">{{ b.court }} on {{ b.date }} ({{ b.start_time }} - {{ b.end_time }})</a>
+                    &ndash; <strong>{{ b.get_status_display }}</strong>
                 </li>
             {% endfor %}
         </ul>

@@ -17,11 +17,15 @@
     <a href="/booking/advertise/">Advertise</a>
     <a href="/booking/about/">About</a>
     {% if user.is_authenticated %}
+        {% if user.email == ADMIN_EMAIL %}
+            <a href="/booking/admin/dashboard/">Admin Dashboard</a>
+        {% endif %}
         <a href="/booking/">My Bookings</a>
         <a href="/booking/create/">Create Booking</a>
         <a href="/profile/">Profile</a>
         <a href="/logout/">Logout</a>
     {% else %}
+        <a href="/admin-login/">Admin Login</a>
         <a href="/signup/">Signup</a>
         <a href="/login/">Login</a>
     {% endif %}

@@ -4,12 +4,12 @@
 <div class="container" style="max-width: 500px; margin-top: 50px;">
     <div class="card">
         <div class="card-header">
-            <h2>Login to Box Cricket Booking</h2>
+            <h2>{% if admin_login %}Admin Login{% else %}Login to Box Cricket Booking{% endif %}</h2>
         </div>
         <div class="card-body">
             <div style="background-color: #e3f2fd; border-left: 4px solid var(--primary-color); padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
                 <p style="color: #1565c0; margin: 0; font-size: 0.95rem;">
-                    <strong>ℹ️ Login Info:</strong> Admin users will be directed to the admin panel. Regular users will go to the home page.
+                    <strong>ℹ️ Login Info:</strong> Admin users (email matching <code>{{ ADMIN_EMAIL }}</code>) will be routed to the booking requests dashboard. Regular users go to home.
                 </p>
             </div>
 
@@ -62,8 +62,10 @@
         </p>
     </div>
 
+    {% if not admin_login %}
     <p style="text-align: center; margin-top: 1.5rem;">
         Don't have an account? <a href="{% url 'signup' %}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Sign up here</a>
     </p>
+    {% endif %}
 </div>
 {% endblock %}

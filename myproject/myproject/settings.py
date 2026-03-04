@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -68,6 +69,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'myproject.context_processors.admin_email',
             ],
         },
     },
@@ -154,3 +156,16 @@ CORS_ALLOWED_ORIGINS = [
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+
+# --- notifications/settings for admin/email/sms ----------------
+# email recipients & defaults
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@test.com')
+DEFAULT_FROM_EMAIL = 'no-reply@goatcricket.com'
+
+# simple console backend for development; replace with smtp in production
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+
+# twilio credentials (optional) to send SMS notifications
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')

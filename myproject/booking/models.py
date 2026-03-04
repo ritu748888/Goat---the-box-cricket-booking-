@@ -57,13 +57,16 @@ class Booking(models.Model):
     end_time = models.TimeField()
     number_of_players = models.PositiveIntegerField(default=8)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='confirmed')
+    # new bookings start out pending so that an administrator can review them
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-date', 'start_time']
+        # allow only one booking with same status at given time; pending and confirmed
+        # will no longer conflict with each other
         unique_together = ('court', 'date', 'start_time', 'status')
 
     def __str__(self):
