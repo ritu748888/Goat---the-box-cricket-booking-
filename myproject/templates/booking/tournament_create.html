@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:800px; margin:2rem auto;">
+    <h2>Create a New Tournament</h2>
+    <p>Organize an exciting cricket tournament at one of our venues.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" style="background:#fff; padding:2rem; border:1px solid #ddd; border-radius:5px;">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_name">Tournament Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div class="error-message">{{ form.name.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_description">Description *</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <div class="error-message">{{ form.description.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex:1; margin-right:1rem;">
+                <label for="id_venue">Venue *</label>
+                {{ form.venue }}
+                {% if form.venue.errors %}
+                    <div class="error-message">{{ form.venue.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label for="id_max_teams">Max Teams *</label>
+                {{ form.max_teams }}
+                {% if form.max_teams.errors %}
+                    <div class="error-message">{{ form.max_teams.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex:1; margin-right:1rem;">
+                <label for="id_start_date">Start Date *</label>
+                {{ form.start_date }}
+                {% if form.start_date.errors %}
+                    <div class="error-message">{{ form.start_date.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group" style="flex:1; margin-right:1rem;">
+                <label for="id_end_date">End Date *</label>
+                {{ form.end_date }}
+                {% if form.end_date.errors %}
+                    <div class="error-message">{{ form.end_date.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label for="id_start_time">Start Time *</label>
+                {{ form.start_time }}
+                {% if form.start_time.errors %}
+                    <div class="error-message">{{ form.start_time.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex:1; margin-right:1rem;">
+                <label for="id_entry_fee">Entry Fee (₹) *</label>
+                {{ form.entry_fee }}
+                {% if form.entry_fee.errors %}
+                    <div class="error-message">{{ form.entry_fee.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label for="id_prize_pool">Prize Pool</label>
+                {{ form.prize_pool }}
+                {% if form.prize_pool.errors %}
+                    <div class="error-message">{{ form.prize_pool.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_rules">Tournament Rules & Guidelines</label>
+            {{ form.rules }}
+            {% if form.rules.errors %}
+                <div class="error-message">{{ form.rules.errors }}</div>
+            {% endif %}
+        </div>
+
+        <hr style="margin:2rem 0;">
+        <h3>Contact Information</h3>
+
+        <div class="form-row">
+            <div class="form-group" style="flex:1; margin-right:1rem;">
+                <label for="id_contact_person">Contact Person *</label>
+                {{ form.contact_person }}
+                {% if form.contact_person.errors %}
+                    <div class="error-message">{{ form.contact_person.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label for="id_contact_email">Email *</label>
+                {{ form.contact_email }}
+                {% if form.contact_email.errors %}
+                    <div class="error-message">{{ form.contact_email.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_contact_phone">Phone Number *</label>
+            {{ form.contact_phone }}
+            {% if form.contact_phone.errors %}
+                <div class="error-message">{{ form.contact_phone.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:0.75rem;">Create Tournament</button>
+        </div>
+    </form>
+
+    <p style="text-align:center; margin-top:2rem;">
+        <a href="{% url 'tournaments' %}">Back to Tournaments</a>
+    </p>
+</div>
+
+<style>
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+.form-group {
+    margin-bottom: 1.5rem;
+}
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-family: inherit;
+}
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+.error-message {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 3px;
+}
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+</style>
+{% endblock %}

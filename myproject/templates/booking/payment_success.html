@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:600px; margin:2rem auto; text-align:center;">
+    <h2>Payment Successful ✓</h2>
+    <p>Your payment has been received. <strong>Awaiting admin approval.</strong></p>
+    <p style="color: #666; font-size: 0.9rem;">Admin will review your booking request and confirm it within 24 hours.</p>
+
+    <div class="booking-summary" style="background:#fff;padding:1rem;border:1px solid var(--neutral-border);margin:1rem 0; text-align:left;">
+        <p><strong>Venue:</strong> {{ booking.court.venue.name }}</p>
+        <p><strong>Court:</strong> {{ booking.court.name }}</p>
+        <p><strong>Date:</strong> {{ booking.date }}</p>
+        <p><strong>Time:</strong> {{ booking.start_time }} - {{ booking.end_time }}</p>
+        <p><strong>Total Paid:</strong> ₹{{ booking.total_price }}</p>
+        <p><strong>Status:</strong> <span style="color:orange;">⏳ Awaiting Admin Confirmation</span></p>
+    </div>
+
+    <p style="font-size:0.9rem; color:#666; margin:1rem 0;">
+        <strong>If admin rejects:</strong> Your refund of ₹{{ booking.total_price }} will be processed within 12 hours.
+    </p>
+
+    <a href="{% url 'booking_list' %}" class="btn btn-success">View My Bookings</a>
+</div>
+{% endblock %}

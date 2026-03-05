@@ -163,6 +163,35 @@ class Tournament(models.Model):
         from datetime import date
         return self.start_date >= date.today()
 
+
+class TournamentSponsor(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('active', 'Active'),
+    )
+    
+    tournament = models.ForeignKey(Tournament, related_name='sponsors', on_delete=models.CASCADE)
+    sponsor_name = models.CharField(max_length=100)
+    contact_person = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    sponsorship_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    sponsorship_type = models.CharField(max_length=100, help_text="e.g., Title Sponsor, Gold Partner, Silver Partner")
+    company_details = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('tournament', 'sponsor_name')
+    
+    def __str__(self):
+        return f"{self.sponsor_name} - {self.tournament.name} ({self.status})"
+
+
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = (
         ('upi', 'UPI'),

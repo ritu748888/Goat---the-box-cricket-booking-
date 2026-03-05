@@ -17,7 +17,8 @@ class BookingWorkflowTests(TestCase):
         self.court = Court.objects.create(venue=self.venue, name='Court1')
         self.client = Client()
 
-    def test_booking_request_creates_pending_and_notifies_admin(self):
+    def test_full_booking_and_payment_flow(self):
+        """User can create a booking, pay, and see a confirmed booking."""
         self.client.login(email='user@example.com', password='userpass')
         data = {
             'court': self.court.id,
@@ -27,12 +28,16 @@ class BookingWorkflowTests(TestCase):
             'number_of_players': 6,
         }
         resp = self.client.post(reverse('booking_create'), data)
+        # should redirect to payment page
         self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, reverse('booking_payment'))
+
+        # simulate payment submission
+        resp2 = self.client.post(reverse('booking_payment'), {'method': 'upi'})
         booking = Booking.objects.get(user=self.user)
-        self.assertEqual(booking.status, 'pending')
-        # check mail sent to admin
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertIn(settings.ADMIN_EMAIL, mail.outbox[0].to)
+        self.assertEqual(booking.status, 'confirmed')
+        self.assertEqual(resp2.status_code, 302)
+        self.assertEqual(resp2.url, reverse('booking_payment_success', kwargs={'pk': booking.pk}))
 
     def test_admin_dashboard_requires_admin(self):
         # regular user should be forbidden

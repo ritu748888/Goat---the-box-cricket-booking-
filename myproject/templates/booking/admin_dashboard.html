@@ -2,43 +2,105 @@
 
 {% block content %}
 <div class="container">
-    <h2>Administrator – Booking Dashboard</h2>
-    {% if bookings %}
-        <table class="booking-table" style="width:100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Court</th>
-                    <th>Date / Time</th>
-                    <th>Players</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for b in bookings %}
-                <tr style="border-bottom:1px solid #ccc;">
-                    <td>{{ b.user.email }}</td>
-                    <td>{{ b.court }}</td>
-                    <td>{{ b.date }}<br>{{ b.start_time }} - {{ b.end_time }}</td>
-                    <td>{{ b.number_of_players }}</td>
-                    <td>{{ b.get_status_display }}</td>
-                    <td>
-                        {% if b.status == 'pending' %}
-                            <a class="btn" href="{% url 'admin_update_booking' b.pk 'confirm' %}">Confirm</a>
-                            <a class="btn" style="background:#f44336;" href="{% url 'admin_update_booking' b.pk 'cancel' %}">Cancel</a>
-                        {% else %}
-                            &mdash;
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No booking requests to display.</p>
-    {% endif %}
+    <h1>Administrator – Booking Dashboard</h1>
+    
+    <!-- PENDING PAYMENT BOOKINGS (AWAITING APPROVAL) -->
+    <div style="background: #fff3cd; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border-left: 5px solid #ffc107;">
+        <h2 style="color: #856404; margin-top: 0;">⏳ Pending Approval ({{ pending_payment_bookings.count }})</h2>
+        <p style="color: #856404; margin-bottom: 1rem;">These bookings have been paid and are awaiting your approval:</p>
+        
+        {% if pending_payment_bookings %}
+            <table class="booking-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #ffeaa7;">
+                        <th>User</th>
+                        <th>Court</th>
+                        <th>Date / Time</th>
+                        <th>Players</th>
+                        <th>Amount Paid</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in pending_payment_bookings %}
+                    <tr style="border-bottom:1px solid #ddd;">
+                        <td><strong>{{ b.user.email }}</strong></td>
+                        <td>{{ b.court }}</td>
+                        <td>{{ b.date }}<br><small>{{ b.start_time }} - {{ b.end_time }}</small></td>
+                        <td>{{ b.number_of_players }}</td>
+                        <td><strong>₹ {% for pay in b.payment_set.all %}{{ pay.amount }}{% endfor %}</strong></td>
+                        <td>
+                            <a class="btn" style="background:#28a745; padding: 0.5rem 1rem; text-decoration: none; color: white; border-radius: 3px;" href="{% url 'admin_update_booking' b.pk 'confirm' %}">✓ Confirm</a>
+                            <a class="btn" style="background:#f44336; padding: 0.5rem 1rem; text-decoration: none; color: white; border-radius: 3px; margin-left: 0.5rem;" href="{% url 'admin_update_booking' b.pk 'cancel' %}">✗ Reject</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #856404; font-style: italic;">No pending bookings awaiting approval.</p>
+        {% endif %}
+    </div>
+
+    <!-- CONFIRMED BOOKINGS -->
+    <div style="margin-bottom: 2rem;">
+        <h2 style="color: #155724;">✓ Confirmed Bookings ({{ confirmed_bookings.count }})</h2>
+        {% if confirmed_bookings %}
+            <table class="booking-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #d4edda;">
+                        <th>User</th>
+                        <th>Court</th>
+                        <th>Date / Time</th>
+                        <th>Players</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in confirmed_bookings %}
+                    <tr style="border-bottom:1px solid #ddd;">
+                        <td>{{ b.user.email }}</td>
+                        <td>{{ b.court }}</td>
+                        <td>{{ b.date }}<br><small>{{ b.start_time }} - {{ b.end_time }}</small></td>
+                        <td>{{ b.number_of_players }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p><em>No confirmed bookings.</em></p>
+        {% endif %}
+    </div>
+
+    <!-- CANCELLED/REJECTED BOOKINGS -->
+    <div style="margin-bottom: 2rem;">
+        <h2 style="color: #dc3545;">✗ Cancelled/Rejected Bookings ({{ cancelled_bookings.count }})</h2>
+        {% if cancelled_bookings %}
+            <table class="booking-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8d7da;">
+                        <th>User</th>
+                        <th>Court</th>
+                        <th>Date / Time</th>
+                        <th>Players</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in cancelled_bookings %}
+                    <tr style="border-bottom:1px solid #ddd;">
+                        <td>{{ b.user.email }}</td>
+                        <td>{{ b.court }}</td>
+                        <td>{{ b.date }}<br><small>{{ b.start_time }} - {{ b.end_time }}</small></td>
+                        <td>{{ b.number_of_players }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p><em>No cancelled bookings.</em></p>
+        {% endif %}
+    </div>
 </div>
+
 <div class="container" style="margin-top: 2rem;">
     <h2>Pending Advertisements</h2>
     {% if ads %}

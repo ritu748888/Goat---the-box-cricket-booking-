@@ -3,18 +3,51 @@
 {% block content %}
 <div class="container">
     <h2>Your Bookings</h2>
-    <p><a href="{% url 'booking_create' %}">Create new booking</a></p>
+    <p><a href="{% url 'booking_create' %}" class="btn btn-primary">Create new booking</a></p>
     {% if bookings %}
-        <ul>
-            {% for b in bookings %}
-                <li>
-                    <a href="{% url 'booking_detail' b.pk %}">{{ b.court }} on {{ b.date }} ({{ b.start_time }} - {{ b.end_time }})</a>
-                    &ndash; <strong>{{ b.get_status_display }}</strong>
-                </li>
-            {% endfor %}
-        </ul>
+        <table style="width:100%; border-collapse:collapse; margin-top:1rem;">
+            <thead>
+                <tr style="background:#f5f5f5; border-bottom:2px solid #ddd;">
+                    <th style="padding:1rem; text-align:left;">Venue & Court</th>
+                    <th style="padding:1rem; text-align:left;">Date & Time</th>
+                    <th style="padding:1rem; text-align:left;">Status</th>
+                    <th style="padding:1rem; text-align:left;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:1rem;">{{ b.court.venue.name }}<br><small>{{ b.court.name }}</small></td>
+                        <td style="padding:1rem;">{{ b.date }}<br><small>{{ b.start_time }} - {{ b.end_time }}</small></td>
+                        <td style="padding:1rem;">
+                            <strong>
+                                {% if b.status == 'confirmed' %}
+                                    <span style="color:green;">✓ Confirmed</span>
+                                {% elif b.status == 'pending' %}
+                                    <span style="color:orange;">⏳ Awaiting Approval</span>
+                                {% elif b.status == 'cancelled' %}
+                                    <span style="color:red;">✗ Cancelled</span>
+                                {% elif b.status == 'completed' %}
+                                    <span style="color:blue;">✓ Completed</span>
+                                {% else %}
+                                    {{ b.get_status_display }}
+                                {% endif %}
+                            </strong>
+                            {% if b.status == 'cancelled' %}
+                                <div style="color:red; font-size:0.9rem; margin-top:0.5rem;">
+                                    💵 Refund will be processed in 12 hours
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td style="padding:1rem;">
+                            <a href="{% url 'booking_detail' b.pk %}" style="color:#1565c0;">View</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-        <p>No bookings yet.</p>
+        <p>No bookings yet. <a href="{% url 'booking_create' %}">Create one now</a>!</p>
     {% endif %}
 </div>
 {% endblock %}

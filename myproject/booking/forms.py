@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models import Q
 from datetime import datetime, timedelta
-from .models import Booking, Court, Advertisement
+from .models import Booking, Court, Advertisement, Tournament, TournamentSponsor
 
 
 class BookingForm(forms.ModelForm):
@@ -92,5 +92,69 @@ class AdvertisementForm(forms.ModelForm):
         
         if mobile_no and len(mobile_no) != 10:
             raise forms.ValidationError('Mobile number should be 10 digits long.')
+        
+        return cleaned
+
+
+class TournamentForm(forms.ModelForm):
+    class Meta:
+        model = Tournament
+        fields = ('name', 'description', 'venue', 'start_date', 'end_date', 'start_time', 'max_teams', 'entry_fee', 'contact_person', 'contact_email', 'contact_phone', 'rules', 'prize_pool')
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Tournament Name'}),
+            'description': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Tournament Description', 'rows': 4}),
+            'venue': forms.Select(attrs={'class': 'form-input'}),
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-input'}),
+            'max_teams': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'Maximum Teams'}),
+            'entry_fee': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'Entry Fee (₹)', 'step': '0.01'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Contact Person Name'}),
+            'contact_email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'contact@example.com'}),
+            'contact_phone': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Phone Number'}),
+            'rules': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Tournament Rules and Guidelines', 'rows': 4}),
+            'prize_pool': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g., 1st: ₹50,000 | 2nd: ₹30,000 | 3rd: ₹20,000'}),
+        }
+    
+    def clean(self):
+        cleaned = super().clean()
+        start_date = cleaned.get('start_date')
+        end_date = cleaned.get('end_date')
+        start_time = cleaned.get('start_time')
+        
+        if start_date and end_date:
+            if end_date < start_date:
+                raise forms.ValidationError('End date must be after or equal to start date.')
+        
+        return cleaned
+
+
+class TournamentSponsorForm(forms.ModelForm):
+    class Meta:
+        model = TournamentSponsor
+        fields = ('sponsor_name', 'contact_person', 'email', 'phone', 'sponsorship_amount', 'sponsorship_type', 'company_details')
+        widgets = {
+            'sponsor_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Company/Brand Name'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Contact Person Name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'Email Address'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Phone Number'}),
+            'sponsorship_amount': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'Sponsorship Amount (₹)', 'step': '0.01'}),
+            'sponsorship_type': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g., Title Sponsor, Gold Partner, Silver Partner'}),
+            'company_details': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Tell us about your company and why you want to sponsor this tournament...', 'rows': 5}),
+        }
+    
+    def clean(self):
+        cleaned = super().clean()
+        phone = cleaned.get('phone')
+        sponsorship_amount = cleaned.get('sponsorship_amount')
+        
+        if phone and not phone.isdigit():
+            raise forms.ValidationError('Phone number should contain only digits.')
+        
+        if phone and len(phone) < 10:
+            raise forms.ValidationError('Phone number should be at least 10 digits.')
+        
+        if sponsorship_amount and sponsorship_amount <= 0:
+            raise forms.ValidationError('Sponsorship amount must be greater than 0.')
         
         return cleaned
