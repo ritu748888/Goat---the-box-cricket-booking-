@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:800px; margin:2rem auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Team Details</h2>
+        <a href="{% url 'tournament_detail' registration.tournament.pk %}" class="btn" style="text-decoration:none; padding:0.5rem 1rem; background:var(--primary-color); color:white; border-radius:4px;">Back to Tournament</a>
+    </div>
+
+    <div style="margin-top:1.5rem; padding:1.5rem; border:1px solid #ddd; border-radius:6px; background:#fff;">
+        <h3>{{ team.name }}</h3>
+        <p><strong>Captain:</strong> {{ team.captain_name }}</p>
+        <p><strong>Contact:</strong> {{ team.contact_number }}</p>
+        <p><strong>Registered At:</strong> {{ registration.created_at|date:'M d, Y H:i' }}</p>
+        <p><strong>Status:</strong> {{ registration.get_status_display }}</p>
+
+        <div style="margin-top:1.5rem;">
+            <h4>Player List</h4>
+            <pre style="background:#f9f9f9; padding:1rem; border-radius:4px; white-space:pre-wrap;">{{ team.player_list }}</pre>
+        </div>
+
+        {% if registration.status == 'pending' %}
+            <div style="margin-top:1.5rem; display:flex; gap:0.75rem;">
+                <a href="{% url 'admin_update_registration' registration.pk 'approve' %}" class="btn" style="background:#28a745; padding:0.5rem 1rem; color:white; text-decoration:none; border-radius:4px;">Approve</a>
+                <a href="{% url 'admin_update_registration' registration.pk 'reject' %}" class="btn" style="background:#f44336; padding:0.5rem 1rem; color:white; text-decoration:none; border-radius:4px;">Reject</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

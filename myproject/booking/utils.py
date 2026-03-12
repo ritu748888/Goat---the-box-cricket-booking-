@@ -53,23 +53,31 @@ def notify_user_booking_status(booking):
 
 
 def notify_advertisement_status(ad, approved=True):
-    """Notify advertisement applicant about approval/rejection."""
-    subject = f"Your advertisement request '{ad.brand_name}' has been {'approved' if approved else 'rejected'}"
+    """Notify a contact about advertisement activation status.
+
+    This function is kept for backward compatibility with any code that calls it, but
+    it does not assume any particular fields are present on the Advertisement model.
+    """
+    try:
+        title = ad.title
+    except AttributeError:
+        title = 'Advertisement'
+
+    subject = f"Your advertisement '{title}' has been {'activated' if approved else 'deactivated'}"
     message = (
-        f"Hello {ad.contact_person_name},\n\n"
-        f"Your advertisement request for '{ad.brand_name}' (type: {ad.promotion_type}) has been {'approved' if approved else 'rejected'}.\n"
-        "We will contact you with next steps if approved.\n"
+        f"Hello,\n\n"
+        f"Your advertisement '{title}' has been {'activated' if approved else 'deactivated'}.\n"
+        "If you have any questions, please contact support.\n"
     )
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [ad.email])
-    phone = getattr(ad, 'mobile_no', None)
-    if phone and settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_PHONE_NUMBER:
-        try:
-            from twilio.rest import Client
-            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-            sms_body = f"Ad { 'Approved' if approved else 'Rejected' }: {ad.brand_name}"
-            client.messages.create(body=sms_body, from_=settings.TWILIO_PHONE_NUMBER, to=phone)
-        except Exception as exc:
-            print(f"failed to send sms: {exc}")
+
+    email = getattr(ad, 'link', None)
+    if email and email.startswith('mailto:'):
+        recipient = email.replace('mailto:', '')
+    else:
+        recipient = None
+
+    if recipient:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
 
 
 def notify_tournament_status(tournament, approved=True):
@@ -117,10 +125,10 @@ def notify_admin_payment(payment):
             f"Amount: ₹{payment.amount}\n"
             f"Payment Method: {payment.get_payment_method_display()}\n"
             f"Type: Advertisement\n"
-            f"Brand: {related_obj.brand_name}\n"
-            f"Type: {related_obj.get_promotion_type_display()}\n"
-            f"Duration: {related_obj.advertise_duration}\n"
-            f"\nPlease review and approve/reject this payment in your admin panel."
+            f"Title: {related_obj.title}\n"
+            f"Position: {related_obj.get_position_display()}\n"
+            f"Active Window: {related_obj.start_date} - {related_obj.end_date}\n"
+            f"\nPlease review and activate/deactivate this advertisement in your admin panel."
         )
     elif payment.transaction_type == 'sponsorship':
         subject = f"New Payment Request: Sponsorship by {payment.user.email}"
@@ -180,9 +188,9 @@ def notify_user_payment_confirmed(payment):
             f"Hello {payment.user.get_full_name() or payment.user.email},\n\n"
             f"Congratulations! Your payment has been confirmed.\n\n"
             f"ADVERTISEMENT DETAILS:\n"
-            f"Brand: {related_obj.brand_name}\n"
-            f"Type: {related_obj.get_promotion_type_display()}\n"
-            f"Duration: {related_obj.advertise_duration}\n"
+            f"Title: {related_obj.title}\n"
+            f"Position: {related_obj.get_position_display()}\n"
+            f"Active Window: {related_obj.start_date} - {related_obj.end_date}\n"
             f"Amount: ₹{payment.amount}\n"
             f"Transaction ID: {payment.transaction_id}\n\n"
             f"Your advertisement is now active!\n"
@@ -250,9 +258,9 @@ def notify_user_payment_rejected(payment, admin_notes=''):
             f"Hello {payment.user.get_full_name() or payment.user.email},\n\n"
             f"Unfortunately, your advertisement request has been rejected.\n\n"
             f"ADVERTISEMENT DETAILS:\n"
-            f"Brand: {related_obj.brand_name}\n"
-            f"Type: {related_obj.get_promotion_type_display()}\n"
-            f"Duration: {related_obj.advertise_duration}\n"
+            f"Title: {related_obj.title}\n"
+            f"Position: {related_obj.get_position_display()}\n"
+            f"Active Window: {related_obj.start_date} - {related_obj.end_date}\n"
             f"Amount Refunded: ₹{payment.amount}\n"
             f"Transaction ID: {payment.transaction_id}\n"
             f"\nReason: {admin_notes if admin_notes else 'No specific reason provided'}\n\n"

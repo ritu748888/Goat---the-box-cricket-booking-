@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:900px; margin:2rem auto;">
+    <div style="display: flex; gap: 2rem; align-items: flex-start;">
+        <div style="flex: 1;">
+            {% if tournament.poster %}
+                <img src="{{ tournament.poster.url }}" alt="{{ tournament.name }}" style="width:100%; border-radius: 8px; object-fit: cover; max-height: 350px;" />
+            {% else %}
+                <div style="width:100%; height:350px; background:#f5f5f5; display:flex; align-items:center; justify-content:center; border-radius:8px;">
+                    <span style="color:#999;">No poster uploaded</span>
+                </div>
+            {% endif %}
+
+            {% if sponsors %}
+                <div style="margin-top: 1rem; padding: 1rem; background: #fafafa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <h3 style="margin-top: 0;">Sponsored By</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center;">
+                        {% for ts in sponsors %}
+                            <a href="{{ ts.sponsor.website|default:'#' }}" target="_blank" style="display:flex; flex-direction:column; align-items:center; text-decoration:none; color: inherit; width: 120px;">
+                                <img src="{{ ts.sponsor.logo.url }}" alt="{{ ts.sponsor.name }}" style="max-width:100%; max-height:80px; object-fit:contain; border: 1px solid #ddd; padding: 8px; background:#fff; border-radius: 6px;" />
+                                <div style="margin-top:0.5rem; text-align:center; font-size:0.85rem;">
+                                    <strong>{{ ts.sponsor.name }}</strong>
+                                    <div style="font-size:0.75rem; color:#666;">{{ ts.get_sponsor_type_display }}</div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div style="flex: 1.2;">
+            <h1 style="margin-top: 0;">{{ tournament.name }}</h1>
+            <p style="color:#555;">{{ tournament.description }}</p>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem;">
+                <div style="background:#fff; padding:1rem; border-radius:6px; border:1px solid #eee;">
+                    <strong>📅 Dates</strong>
+                    <p style="margin:.5rem 0 0 0;">{{ tournament.start_date|date:"M d, Y" }}{% if tournament.start_date != tournament.end_date %} - {{ tournament.end_date|date:"M d, Y" }}{% endif %}</p>
+                </div>
+                <div style="background:#fff; padding:1rem; border-radius:6px; border:1px solid #eee;">
+                    <strong>⏱ Start Time</strong>
+                    <p style="margin:.5rem 0 0 0;">{{ tournament.start_time|time:"H:i" }}</p>
+                </div>
+                <div style="background:#fff; padding:1rem; border-radius:6px; border:1px solid #eee;">
+                    <strong>👥 Max Teams</strong>
+                    <p style="margin:.5rem 0 0 0;">{{ tournament.max_teams }}</p>
+                </div>
+                <div style="background:#fff; padding:1rem; border-radius:6px; border:1px solid #eee;">
+                    <strong>✅ Registered</strong>
+                    <p style="margin:.5rem 0 0 0;">{{ tournament.approved_registrations_count }} teams</p>
+                </div>
+                <div style="background:#fff; padding:1rem; border-radius:6px; border:1px solid #eee;">
+                    <strong>💰 Entry Fee</strong>
+                    <p style="margin:.5rem 0 0 0;">{% if tournament.entry_fee > 0 %}₹{{ tournament.entry_fee }}{% else %}Free{% endif %}</p>
+                </div>
+                <div style="background:#fff; padding:1rem; border-radius:6px; border:1px solid #eee;">
+                    <strong>🏆 Prize Pool</strong>
+                    <p style="margin:.5rem 0 0 0;">{{ tournament.prize_pool|default:'TBD' }}</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <h3>Contact</h3>
+                <p style="margin:.25rem 0;"><strong>{{ tournament.contact_person }}</strong></p>
+                <p style="margin:.25rem 0;"><a href="mailto:{{ tournament.contact_email }}" style="color: var(--primary-color);">{{ tournament.contact_email }}</a></p>
+                <p style="margin:.25rem 0;">{{ tournament.contact_phone }}</p>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                {% if request.user.is_authenticated %}
+                    {% if tournament.registration_open %}
+                        <a class="btn" href="{% url 'tournament_register' tournament.pk %}" style="background: var(--primary-color); color: white; padding: 0.8rem 1.2rem; border-radius: 5px; text-decoration: none;">Register Team</a>
+                    {% else %}
+                        <div style="padding: 1rem; background: #ffe6e6; border: 1px solid #f5c2c7; border-radius: 6px;">
+                            <strong>Registrations are closed.</strong>
+                            {% if tournament.status == 'cancelled' %}
+                                <div>This tournament has been cancelled.</div>
+                            {% elif tournament.approved_registrations_count >= tournament.max_teams %}
+                                <div>The maximum number of teams has been reached.</div>
+                            {% else %}
+                                <div>Please check back later.</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p>Please <a href="{% url 'login' %}">log in</a> to register your team.</p>
+                {% endif %}
+            </div>
+
+            {% if is_admin %}
+                <div style="margin-top: 2rem; padding:1rem; border:1px solid #ddd; background:#f9f9f9; border-radius:6px;">
+                    <h3>Registered Teams</h3>
+                    {% if registrations and registrations.exists %}
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background:#f1f1f1;">
+                                    <th style="padding:8px; text-align:left;">Team</th>
+                                    <th style="padding:8px; text-align:left;">Captain</th>
+                                    <th style="padding:8px; text-align:left;">Contact</th>
+                                    <th style="padding:8px; text-align:left;">Status</th>
+                                    <th style="padding:8px; text-align:left;">Registered At</th>
+                                    <th style="padding:8px; text-align:left;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reg in registrations %}
+                                <tr style="border-top:1px solid #eee;">
+                                    <td style="padding:8px;"><a href="{% url 'team_detail' reg.team.pk %}" style="text-decoration:none; color:#0d6efd;">{{ reg.team.name }}</a></td>
+                                    <td style="padding:8px;">{{ reg.team.captain_name }}</td>
+                                    <td style="padding:8px;">{{ reg.team.contact_number }}</td>
+                                    <td style="padding:8px;">{{ reg.get_status_display }}</td>
+                                    <td style="padding:8px;">{{ reg.created_at|date:'M d, Y H:i' }}</td>
+                                    <td style="padding:8px;">
+                                        {% if reg.status == 'pending' %}
+                                            <a class="btn" style="background:#28a745; padding:0.25rem 0.5rem; color:white; text-decoration:none;" href="{% url 'admin_update_registration' reg.pk 'approve' %}">Approve</a>
+                                            <a class="btn" style="background:#f44336; padding:0.25rem 0.5rem; color:white; text-decoration:none; margin-left:0.25rem;" href="{% url 'admin_update_registration' reg.pk 'reject' %}">Reject</a>
+                                        {% else %}
+                                            &mdash;
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No registrations yet.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

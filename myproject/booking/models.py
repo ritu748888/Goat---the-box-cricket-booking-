@@ -97,35 +97,44 @@ class Review(models.Model):
 
 
 class Advertisement(models.Model):
-    PROMOTION_CHOICES = (
-        ('ground', 'Ground Sponsorship'),
-        ('tournament', 'Tournament Sponsorship'),
-        ('both', 'Both Ground & Tournament'),
+    HOME_TOP = 'HOME_TOP'
+    HOME_BOTTOM = 'HOME_BOTTOM'
+    TOURNAMENT_PAGE = 'TOURNAMENT_PAGE'
+    SIDEBAR = 'SIDEBAR'
+
+    POSITION_CHOICES = (
+        (HOME_TOP, 'Home - Top'),
+        (HOME_BOTTOM, 'Home - Bottom'),
+        (TOURNAMENT_PAGE, 'Tournament Page'),
+        (SIDEBAR, 'Sidebar'),
     )
-    
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('active', 'Active'),
-    )
-    
-    brand_name = models.CharField(max_length=100)
-    contact_person_name = models.CharField(max_length=100)
-    email = models.EmailField()
-    mobile_no = models.CharField(max_length=15)
-    promotion_type = models.CharField(max_length=20, choices=PROMOTION_CHOICES)
-    company_details = models.TextField()
-    advertise_duration = models.CharField(max_length=100, help_text="e.g., 1 month, 3 months, 6 months, 1 year")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    title = models.CharField(max_length=200, blank=True, default='')
+    image = models.ImageField(upload_to='advertisements/', blank=True, null=True)
+    link = models.URLField(blank=True)
+    position = models.CharField(max_length=20, choices=POSITION_CHOICES, default=HOME_TOP)
+    start_date = models.DateField(default=timezone.now, null=True, blank=True)
+    end_date = models.DateField(default=timezone.now, null=True, blank=True)
+    is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-created_at']
-    
+
     def __str__(self):
-        return f"{self.brand_name} - {self.promotion_type} ({self.status})"
+        return self.title
+
+    @classmethod
+    def active_ads(cls, position=None):
+        """Return ads that should be shown right now.
+
+        If `position` is provided, filters down to that position.
+        """
+        today = timezone.now().date()
+        qs = cls.objects.filter(is_active=True, start_date__lte=today, end_date__gte=today)
+        if position:
+            qs = qs.filter(position=position)
+        return qs
 
 
 class Tournament(models.Model):
@@ -138,6 +147,7 @@ class Tournament(models.Model):
     
     name = models.CharField(max_length=150)
     description = models.TextField()
+    poster = models.ImageField(upload_to='tournament_posters/', blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
     start_time = models.TimeField()
@@ -163,33 +173,108 @@ class Tournament(models.Model):
         from datetime import date
         return self.start_date >= date.today()
 
+    @property
+    def approved_registrations_count(self):
+        return self.registrations.filter(status='approved').count()
 
-class TournamentSponsor(models.Model):
+    @property
+    def registration_open(self):
+        """Registration is open when tournament is not cancelled and max teams not reached."""
+        if self.status == 'cancelled':
+            return False
+        return self.approved_registrations_count < self.max_teams
+
+    def close_registration_if_full(self):
+        """Ensure registration is blocked when max teams are reached."""
+        # This method is kept for future extensibility. Current registration state is
+        # derived from `approved_registrations_count` and `max_teams`.
+        return self.approved_registrations_count >= self.max_teams
+
+
+class Team(models.Model):
+    name = models.CharField(max_length=150)
+    captain_name = models.CharField(max_length=100)
+    contact_number = models.CharField(max_length=15)
+    player_list = models.TextField(help_text='List players (one per line)')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='teams', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class TournamentRegistration(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
-        ('active', 'Active'),
     )
-    
-    tournament = models.ForeignKey(Tournament, related_name='sponsors', on_delete=models.CASCADE)
-    sponsor_name = models.CharField(max_length=100)
-    contact_person = models.CharField(max_length=100)
-    email = models.EmailField()
-    phone = models.CharField(max_length=15)
-    sponsorship_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    sponsorship_type = models.CharField(max_length=100, help_text="e.g., Title Sponsor, Gold Partner, Silver Partner")
-    company_details = models.TextField()
+
+    tournament = models.ForeignKey(Tournament, related_name='registrations', on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, related_name='tournament_registrations', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tournament_registrations', on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-created_at']
-        unique_together = ('tournament', 'sponsor_name')
-    
+        unique_together = ('tournament', 'team')
+
     def __str__(self):
-        return f"{self.sponsor_name} - {self.tournament.name} ({self.status})"
+        return f"{self.team.name} ({self.tournament.name}) - {self.status}"
+
+    def save(self, *args, **kwargs):
+        # When a registration is approved, automatically close registration if the tournament is full.
+        previous_status = None
+        if self.pk:
+            previous_status = TournamentRegistration.objects.filter(pk=self.pk).values_list('status', flat=True).first()
+        super().save(*args, **kwargs)
+
+        if self.status == 'approved' and previous_status != 'approved':
+            self.tournament.close_registration_if_full()
+
+
+class Sponsor(models.Model):
+    name = models.CharField(max_length=150)
+    logo = models.ImageField(upload_to='sponsor_logos/')
+    website = models.URLField(blank=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class TournamentSponsor(models.Model):
+    TITLE_SPONSOR = 'TITLE_SPONSOR'
+    CO_SPONSOR = 'CO_SPONSOR'
+    PARTNER = 'PARTNER'
+
+    SPONSOR_TYPE_CHOICES = (
+        (TITLE_SPONSOR, 'Title Sponsor'),
+        (CO_SPONSOR, 'Co-Sponsor'),
+        (PARTNER, 'Partner'),
+    )
+
+    tournament = models.ForeignKey(Tournament, related_name='sponsors', on_delete=models.CASCADE)
+    sponsor = models.ForeignKey(Sponsor, related_name='tournament_sponsorships', on_delete=models.CASCADE, null=True, blank=True)
+    sponsor_type = models.CharField(max_length=20, choices=SPONSOR_TYPE_CHOICES, default=PARTNER)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('tournament', 'sponsor')
+
+    def __str__(self):
+        return f"{self.sponsor.name} ({self.get_sponsor_type_display()}) - {self.tournament.name}"
 
 
 class Payment(models.Model):
@@ -215,17 +300,19 @@ class Payment(models.Model):
         ('booking', 'Booking'),
         ('advertisement', 'Advertisement'),
         ('sponsorship', 'Sponsorship'),
+        ('tournament_registration', 'Tournament Registration'),
     )
     
     # Core fields
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='payments', on_delete=models.CASCADE)
     transaction_id = models.CharField(max_length=100, unique=True)
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES)
+    transaction_type = models.CharField(max_length=30, choices=TRANSACTION_TYPE_CHOICES)
     
     # Foreign keys (one will be set depending on transaction type)
     booking = models.OneToOneField(Booking, null=True, blank=True, related_name='payment', on_delete=models.CASCADE)
     advertisement = models.OneToOneField(Advertisement, null=True, blank=True, related_name='payment', on_delete=models.CASCADE)
     tournament = models.OneToOneField(Tournament, null=True, blank=True, related_name='payment', on_delete=models.CASCADE)
+    registration = models.OneToOneField('TournamentRegistration', null=True, blank=True, related_name='payment', on_delete=models.CASCADE)
     
     # Payment details
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -237,6 +324,9 @@ class Payment(models.Model):
     admin_approved = models.BooleanField(default=False)
     admin_approved_at = models.DateTimeField(null=True, blank=True)
     admin_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='approved_payments', on_delete=models.SET_NULL)
+    
+    # Optional proof / receipt
+    payment_proof = models.FileField(upload_to='payment_proofs/', null=True, blank=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -253,11 +343,13 @@ class Payment(models.Model):
         return f"Payment {self.transaction_id} - {self.user.email} ({self.status})"
     
     def get_related_object(self):
-        """Get the related object (booking, advertisement, or tournament)"""
+        """Get the related object (booking, advertisement, tournament, or registration)"""
         if self.booking:
             return self.booking
         elif self.advertisement:
             return self.advertisement
+        elif self.registration:
+            return self.registration
         elif self.tournament:
             return self.tournament
         return None

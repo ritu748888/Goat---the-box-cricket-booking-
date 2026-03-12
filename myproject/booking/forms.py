@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models import Q
 from datetime import datetime, timedelta
-from .models import Booking, Court, Advertisement, Tournament, TournamentSponsor
+from .models import Booking, Court, Advertisement, Tournament, Payment
 
 
 class BookingForm(forms.ModelForm):
@@ -70,39 +70,50 @@ class BookingForm(forms.ModelForm):
         return cleaned
 
 class AdvertisementForm(forms.ModelForm):
+    payment_method = forms.ChoiceField(
+        choices=Payment.PAYMENT_METHOD_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-input'}),
+        label='Payment Method',
+        required=True
+    )
+    payment_proof = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-input'}),
+        label='Payment Proof (optional)'
+    )
+
     class Meta:
         model = Advertisement
-        fields = ('brand_name', 'contact_person_name', 'email', 'mobile_no', 'promotion_type', 'advertise_duration', 'company_details')
+        fields = ('title', 'image', 'link', 'position', 'start_date', 'end_date', 'is_active')
         widgets = {
-            'brand_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Your Brand Name'}),
-            'contact_person_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Contact Person Full Name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'your.email@example.com'}),
-            'mobile_no': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Mobile Number (10 digits)'}),
-            'promotion_type': forms.Select(attrs={'class': 'form-input'}),
-            'advertise_duration': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g., 1 month, 3 months, 6 months, 1 year'}),
-            'company_details': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Describe your company, products/services, and why you want to sponsor...', 'rows': 5}),
+            'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Advertisement Title'}),
+            'image': forms.FileInput(attrs={'class': 'form-input'}),
+            'link': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://example.com'}),
+            'position': forms.Select(attrs={'class': 'form-input'}),
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-input'}),
         }
-    
+
     def clean(self):
         cleaned = super().clean()
-        mobile_no = cleaned.get('mobile_no')
-        
-        if mobile_no and not mobile_no.isdigit():
-            raise forms.ValidationError('Mobile number should contain only digits.')
-        
-        if mobile_no and len(mobile_no) != 10:
-            raise forms.ValidationError('Mobile number should be 10 digits long.')
-        
+        start_date = cleaned.get('start_date')
+        end_date = cleaned.get('end_date')
+
+        if start_date and end_date and end_date < start_date:
+            raise forms.ValidationError('End date must be on or after the start date.')
+
         return cleaned
 
 
 class TournamentForm(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ('name', 'description', 'venue', 'start_date', 'end_date', 'start_time', 'max_teams', 'entry_fee', 'contact_person', 'contact_email', 'contact_phone', 'rules', 'prize_pool')
+        fields = ('name', 'description', 'poster', 'venue', 'start_date', 'end_date', 'start_time', 'max_teams', 'entry_fee', 'contact_person', 'contact_email', 'contact_phone', 'rules', 'prize_pool')
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Tournament Name'}),
             'description': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Tournament Description', 'rows': 4}),
+            'poster': forms.FileInput(attrs={'class': 'form-input'}),
             'venue': forms.Select(attrs={'class': 'form-input'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
@@ -129,32 +140,18 @@ class TournamentForm(forms.ModelForm):
         return cleaned
 
 
-class TournamentSponsorForm(forms.ModelForm):
-    class Meta:
-        model = TournamentSponsor
-        fields = ('sponsor_name', 'contact_person', 'email', 'phone', 'sponsorship_amount', 'sponsorship_type', 'company_details')
-        widgets = {
-            'sponsor_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Company/Brand Name'}),
-            'contact_person': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Contact Person Name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'Email Address'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Phone Number'}),
-            'sponsorship_amount': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'Sponsorship Amount (₹)', 'step': '0.01'}),
-            'sponsorship_type': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g., Title Sponsor, Gold Partner, Silver Partner'}),
-            'company_details': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Tell us about your company and why you want to sponsor this tournament...', 'rows': 5}),
-        }
-    
-    def clean(self):
-        cleaned = super().clean()
-        phone = cleaned.get('phone')
-        sponsorship_amount = cleaned.get('sponsorship_amount')
-        
-        if phone and not phone.isdigit():
-            raise forms.ValidationError('Phone number should contain only digits.')
-        
-        if phone and len(phone) < 10:
-            raise forms.ValidationError('Phone number should be at least 10 digits.')
-        
-        if sponsorship_amount and sponsorship_amount <= 0:
-            raise forms.ValidationError('Sponsorship amount must be greater than 0.')
-        
-        return cleaned
+class TournamentRegistrationForm(forms.Form):
+    team_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Team Name'}))
+    captain_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Captain Name'}))
+    contact_number = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Contact Number'}))
+    player_list = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Add one player per line', 'rows': 5}))
+    payment_method = forms.ChoiceField(choices=Payment.PAYMENT_METHOD_CHOICES, widget=forms.Select(attrs={'class': 'form-input'}))
+    payment_proof = forms.FileField(required=True)
+
+    def clean_contact_number(self):
+        number = self.cleaned_data.get('contact_number', '')
+        if not number.isdigit():
+            raise forms.ValidationError('Contact number should contain only digits.')
+        if not 10 <= len(number) <= 15:
+            raise forms.ValidationError('Contact number should be between 10 and 15 digits.')
+        return number

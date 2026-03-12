@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:700px; margin:2rem auto;">
+    <h2>Register Team for {{ tournament.name }}</h2>
+    <p style="color:#555;">Please fill in your team details and upload payment proof to complete registration.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" style="background:#fff; padding:2rem; border:1px solid #ddd; border-radius:5px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_team_name">Team Name *</label>
+            {{ form.team_name }}
+            {% if form.team_name.errors %}
+                <div class="error-message">{{ form.team_name.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex:1; margin-right:1rem;">
+                <label for="id_captain_name">Captain Name *</label>
+                {{ form.captain_name }}
+                {% if form.captain_name.errors %}
+                    <div class="error-message">{{ form.captain_name.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label for="id_contact_number">Contact Number *</label>
+                {{ form.contact_number }}
+                {% if form.contact_number.errors %}
+                    <div class="error-message">{{ form.contact_number.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_player_list">Player List *</label>
+            {{ form.player_list }}
+            {% if form.player_list.errors %}
+                <div class="error-message">{{ form.player_list.errors }}</div>
+            {% endif %}
+        </div>
+
+        <hr style="margin:2rem 0;">
+        <h3>Payment</h3>
+
+        <div class="form-group">
+            <label for="id_payment_method">Payment Method *</label>
+            {{ form.payment_method }}
+            {% if form.payment_method.errors %}
+                <div class="error-message">{{ form.payment_method.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_payment_proof">Upload Payment Proof *</label>
+            {{ form.payment_proof }}
+            {% if form.payment_proof.errors %}
+                <div class="error-message">{{ form.payment_proof.errors }}</div>
+            {% endif %}
+        </div>
+
+        <p style="margin-top: 1rem;"><strong>Entry Fee:</strong> {% if tournament.entry_fee > 0 %}₹{{ tournament.entry_fee }}{% else %}Free{% endif %}</p>
+
+        <div class="form-group" style="margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:0.8rem;">Submit Registration</button>
+        </div>
+    </form>
+
+    <p style="text-align:center; margin-top:2rem;"><a href="{% url 'tournament_detail' tournament.pk %}">Back to Tournament Details</a></p>
+</div>
+{% endblock %}

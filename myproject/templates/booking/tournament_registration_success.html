@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:700px; margin:2rem auto;">
+    <h2>Registration Submitted</h2>
+    <p>Your team <strong>{{ registration.team.name }}</strong> has been registered for <strong>{{ registration.tournament.name }}</strong>.</p>
+    <p>The registration is currently <strong>{{ registration.get_status_display }}</strong>. An administrator will review your payment proof and update the status shortly.</p>
+
+    <div style="margin-top:1.5rem; padding:1rem; background:#f9f9f9; border:1px solid #ddd; border-radius:6px;">
+        <p><strong>Registered On:</strong> {{ registration.created_at|date:'M d, Y H:i' }}</p>
+        <p><strong>Team Captain:</strong> {{ registration.team.captain_name }}</p>
+        <p><strong>Contact:</strong> {{ registration.team.contact_number }}</p>
+    </div>
+
+    <p style="margin-top:2rem;">You can view the tournament details <a href="{% url 'tournament_detail' registration.tournament.pk %}">here</a>.</p>
+</div>
+{% endblock %}

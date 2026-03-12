@@ -5,12 +5,23 @@
     <div style="text-align: center; margin-bottom: 3rem;">
         <h1>Upcoming Tournaments</h1>
         <p style="color: #666; font-size: 1.1rem;">Showcase your skills and compete with the best! Join our box cricket tournaments.</p>
+        {% if request.user.is_authenticated and request.user.is_staff %}
+            <a href="{% url 'tournament_create' %}" class="btn" style="margin-top: 1rem;">Create Tournament</a>
+        {% endif %}
     </div>
 
     {% if tournaments %}
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem;">
             {% for tournament in tournaments %}
                 <div class="card" style="border-left: 4px solid var(--primary-color);">
+                    {% if tournament.poster %}
+                        <img src="{{ tournament.poster.url }}" alt="{{ tournament.name }}" style="width:100%; height:180px; object-fit:cover; border-top-left-radius:4px; border-top-right-radius:4px;" />
+                    {% else %}
+                        <div style="width:100%; height:180px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; border-top-left-radius:4px; border-top-right-radius:4px;">
+                            <span style="color:#999;">No poster available</span>
+                        </div>
+                    {% endif %}
+
                     <div style="padding: 1.5rem 0; border-bottom: 1px solid #e0e0e0;">
                         <h3 style="margin: 0; color: var(--primary-color);">{{ tournament.name }}</h3>
                         <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0 0 0;">📍 {{ tournament.venue.name }}, {{ tournament.venue.city }}</p>
@@ -31,7 +42,7 @@
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
                             <div>
                                 <p style="color: #666; font-size: 0.85rem; margin: 0;">👥 Max Teams</p>
                                 <p style="font-weight: 500; margin: 0.3rem 0 0 0;">{{ tournament.max_teams }} Teams</p>
@@ -46,6 +57,10 @@
                                     {% endif %}
                                 </p>
                             </div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <p style="color: #666; font-size: 0.85rem; margin: 0;">✅ Registered Teams</p>
+                            <p style="font-weight: 500; margin: 0.3rem 0 0 0;">{{ tournament.approved_registrations_count }} / {{ tournament.max_teams }}</p>
                         </div>
 
                         {% if tournament.prize_pool %}
@@ -71,8 +86,8 @@
                     </div>
 
                     <div style="padding-top: 1rem; border-top: 1px solid #e0e0e0; display: flex; gap: 1rem;">
-                        <button class="btn" style="flex: 1; background-color: var(--primary-color); color: white;">Register Now</button>
-                        <button class="btn" style="flex: 1; background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color);">More Info</button>
+                        <a href="{% url 'tournament_register' tournament.pk %}" class="btn" style="flex: 1; background-color: var(--primary-color); color: white; text-decoration: none; text-align: center; padding: 0.8rem;">Register Now</a>
+                        <a href="{% url 'tournament_detail' tournament.pk %}" class="btn" style="flex: 1; background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); text-decoration: none; text-align: center; padding: 0.8rem;">More Info</a>
                     </div>
                 </div>
             {% endfor %}

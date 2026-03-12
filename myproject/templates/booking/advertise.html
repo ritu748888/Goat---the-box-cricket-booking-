@@ -8,9 +8,9 @@
             <p style="color: #666; margin-top: 0.5rem;">Reach thousands of box cricket enthusiasts by sponsoring grounds or tournaments</p>
         </div>
         <div class="card-body">
-            <form method="POST" novalidate>
+            <form method="POST" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
-                
+
                 {% if form.non_field_errors %}
                     <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; color: #721c24;">
                         <strong>Error:</strong>
@@ -21,86 +21,100 @@
                 {% endif %}
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <!-- Brand Name -->
                     <div class="form-group">
-                        <label for="{{ form.brand_name.id_for_label }}">{{ form.brand_name.label }} <span style="color: #c62828;">*</span></label>
-                        {{ form.brand_name }}
-                        {% if form.brand_name.errors %}
+                        <label for="{{ form.title.id_for_label }}">{{ form.title.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
                             <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
-                                {% for error in form.brand_name.errors %}{{ error }}{% endfor %}
+                                {% for error in form.title.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
-                    <!-- Contact Person Name -->
                     <div class="form-group">
-                        <label for="{{ form.contact_person_name.id_for_label }}">{{ form.contact_person_name.label }} <span style="color: #c62828;">*</span></label>
-                        {{ form.contact_person_name }}
-                        {% if form.contact_person_name.errors %}
+                        <label for="{{ form.image.id_for_label }}">{{ form.image.label }} <span style="color: #c62828;">*</span></label>
+                        {{ form.image }}
+                        {% if form.image.errors %}
                             <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
-                                {% for error in form.contact_person_name.errors %}{{ error }}{% endfor %}
+                                {% for error in form.image.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
-                    <!-- Email -->
                     <div class="form-group">
-                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }} <span style="color: #c62828;">*</span></label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
+                        <label for="{{ form.link.id_for_label }}">{{ form.link.label }}</label>
+                        {{ form.link }}
+                        {% if form.link.errors %}
                             <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
-                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                {% for error in form.link.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
-                    <!-- Mobile Number -->
                     <div class="form-group">
-                        <label for="{{ form.mobile_no.id_for_label }}">{{ form.mobile_no.label }} <span style="color: #c62828;">*</span></label>
-                        {{ form.mobile_no }}
-                        {% if form.mobile_no.errors %}
+                        <label for="{{ form.position.id_for_label }}">{{ form.position.label }}</label>
+                        {{ form.position }}
+                        {% if form.position.errors %}
                             <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
-                                {% for error in form.mobile_no.errors %}{{ error }}{% endfor %}
+                                {% for error in form.position.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
-                    <!-- Promotion Type -->
                     <div class="form-group">
-                        <label for="{{ form.promotion_type.id_for_label }}">{{ form.promotion_type.label }} <span style="color: #c62828;">*</span></label>
-                        {{ form.promotion_type }}
-                        {% if form.promotion_type.errors %}
+                        <label for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
                             <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
-                                {% for error in form.promotion_type.errors %}{{ error }}{% endfor %}
+                                {% for error in form.start_date.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
-                    <!-- Advertise Duration -->
                     <div class="form-group">
-                        <label for="{{ form.advertise_duration.id_for_label }}">{{ form.advertise_duration.label }} <span style="color: #c62828;">*</span></label>
-                        {{ form.advertise_duration }}
-                        {% if form.advertise_duration.errors %}
+                        <label for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
                             <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
-                                {% for error in form.advertise_duration.errors %}{{ error }}{% endfor %}
+                                {% for error in form.end_date.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
-                </div>
 
-                <!-- Company Details - Full Width -->
-                <div class="form-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
-                    <label for="{{ form.company_details.id_for_label }}">{{ form.company_details.label }} <span style="color: #c62828;">*</span></label>
-                    {{ form.company_details }}
-                    {% if form.company_details.errors %}
-                        <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
-                            {% for error in form.company_details.errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active }} {{ form.is_active.label }}
+                        </label>
+                        {% if form.is_active.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="{{ form.payment_method.id_for_label }}">{{ form.payment_method.label }}</label>
+                        {{ form.payment_method }}
+                        {% if form.payment_method.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.payment_method.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="{{ form.payment_proof.id_for_label }}">{{ form.payment_proof.label }}</label>
+                        {{ form.payment_proof }}
+                        {% if form.payment_proof.errors %}
+                            <div style="color: #c62828; font-size: 0.9rem; margin-top: 0.3rem;">
+                                {% for error in form.payment_proof.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
-                    <button type="submit" class="btn" style="width: 100%;">Submit Sponsorship Request</button>
+                    <button type="submit" class="btn" style="width: 100%;">Submit Advertisement</button>
                 </div>
             </form>
 

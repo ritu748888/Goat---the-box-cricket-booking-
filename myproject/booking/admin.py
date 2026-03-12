@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count, Q
-from .models import Venue, Court, Booking, Review, Advertisement, Tournament
+from .models import Venue, Court, Booking, Review, Advertisement, Sponsor, Tournament, Team, TournamentRegistration, TournamentSponsor
 
 
 # Custom Admin Site Configuration
@@ -232,93 +232,69 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Advertisement)
 class AdvertisementAdmin(admin.ModelAdmin):
-    list_display = ('brand_name', 'contact_person_name', 'promotion_badge', 'status_badge', 'created_at')
-    list_filter = ('promotion_type', 'status', 'created_at')
-    search_fields = ('brand_name', 'contact_person_name', 'email', 'company_details')
-    readonly_fields = ('created_at', 'updated_at', 'submitted_info')
-    actions = ['approve_ads', 'reject_ads', 'mark_active']
+    list_display = ('title', 'position', 'start_date', 'end_date', 'is_active', 'created_at')
+    list_filter = ('position', 'is_active', 'start_date', 'end_date')
+    search_fields = ('title', 'link')
+    readonly_fields = ('created_at',)
     date_hierarchy = 'created_at'
-    
     fieldsets = (
-        ('Brand Information', {
-            'fields': ('brand_name', 'company_details')
+        ('Advertisement', {
+            'fields': ('title', 'image', 'link', 'position')
         }),
-        ('Contact Person', {
-            'fields': ('contact_person_name', 'email', 'mobile_no')
-        }),
-        ('Sponsorship Details', {
-            'fields': ('promotion_type', 'advertise_duration', 'submitted_info')
-        }),
-        ('Admin Actions', {
-            'fields': ('status',),
-            'description': 'Approve or reject sponsorship requests'
+        ('Schedule & Status', {
+            'fields': ('start_date', 'end_date', 'is_active')
         }),
         ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
+            'fields': ('created_at',),
             'classes': ('collapse',)
         }),
     )
-    
-    def promotion_badge(self, obj):
-        colors = {
-            'ground': '#2196F3',
-            'tournament': '#FF5722',
-            'both': '#9C27B0'
-        }
-        color = colors.get(obj.promotion_type, '#9E9E9E')
-        labels = {
-            'ground': 'Ground',
-            'tournament': 'Tournament',
-            'both': 'Both'
-        }
-        return format_html(
-            '<span style="background-color: {}; color: white; padding: 5px 10px; border-radius: 3px;">{}</span>',
-            color, labels.get(obj.promotion_type, obj.promotion_type)
-        )
-    promotion_badge.short_description = 'Promotion Type'
-    
-    def status_badge(self, obj):
-        colors = {
-            'pending': '#FF9800',
-            'approved': '#4CAF50',
-            'rejected': '#f44336',
-            'active': '#2196F3'
-        }
-        color = colors.get(obj.status, '#9E9E9E')
-        icons = {
-            'pending': '⏳',
-            'approved': '✅',
-            'rejected': '❌',
-            'active': '🔴'
-        }
-        return format_html(
-            '<span style="background-color: {}; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">{} {}</span>',
-            color, icons.get(obj.status, ''), obj.get_status_display()
-        )
-    status_badge.short_description = 'Status'
-    
-    def submitted_info(self, obj):
-        return format_html(
-            '<div style="background-color: #f5f5f5; padding: 10px; border-radius: 4px;"><strong>Submitted on:</strong> {}<br><strong>Duration:</strong> {}</div>',
-            obj.created_at.strftime('%d %b %Y, %H:%M'),
-            obj.advertise_duration
-        )
-    submitted_info.short_description = 'Submission Details'
-    
-    def approve_ads(self, request, queryset):
-        updated = queryset.filter(status='pending').update(status='approved')
-        self.message_user(request, f'{updated} advertisement(s) approved! ✅')
-    approve_ads.short_description = '✅ Approve selected advertisements'
-    
-    def reject_ads(self, request, queryset):
-        updated = queryset.filter(status='pending').update(status='rejected')
-        self.message_user(request, f'{updated} advertisement(s) rejected! ❌')
-    reject_ads.short_description = '❌ Reject selected advertisements'
-    
-    def mark_active(self, request, queryset):
-        updated = queryset.filter(status='approved').update(status='active')
-        self.message_user(request, f'{updated} advertisement(s) marked as active! 🔴')
-    mark_active.short_description = '🔴 Mark as active'
+
+
+@admin.register(Sponsor)
+class SponsorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'website', 'created_at')
+    search_fields = ('name', 'website')
+    readonly_fields = ('created_at',)
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'logo', 'website', 'description')
+        }),
+        ('Metadata', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(TournamentSponsor)
+class TournamentSponsorAdmin(admin.ModelAdmin):
+    list_display = ('tournament', 'sponsor', 'sponsor_type', 'is_active', 'created_at')
+    list_filter = ('sponsor_type', 'is_active', 'tournament')
+    search_fields = ('sponsor__name', 'tournament__name')
+    readonly_fields = ('created_at',)
+    fieldsets = (
+        (None, {
+            'fields': ('tournament', 'sponsor', 'sponsor_type', 'is_active')
+        }),
+        ('Metadata', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+class TournamentSponsorInline(admin.TabularInline):
+    model = TournamentSponsor
+    extra = 0
+    fields = ('sponsor', 'sponsor_type', 'is_active')
+
+
+class TournamentRegistrationInline(admin.TabularInline):
+    model = TournamentRegistration
+    extra = 0
+    readonly_fields = ('team', 'user', 'status', 'created_at')
+    can_delete = False
 
 
 @admin.register(Tournament)
@@ -329,6 +305,7 @@ class TournamentAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at', 'tournament_summary')
     actions = ['mark_ongoing', 'mark_completed', 'mark_cancelled']
     date_hierarchy = 'start_date'
+    inlines = [TournamentRegistrationInline, TournamentSponsorInline]
     
     fieldsets = (
         ('Tournament Information', {
@@ -413,3 +390,31 @@ class TournamentAdmin(admin.ModelAdmin):
         updated = queryset.update(status='cancelled')
         self.message_user(request, f'{updated} tournament(s) cancelled! ❌')
     mark_cancelled.short_description = '❌ Cancel tournaments'
+
+
+@admin.register(Team)
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ('name', 'captain_name', 'contact_number', 'created_by', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('name', 'captain_name', 'created_by__email')
+    readonly_fields = ('created_at',)
+
+
+@admin.register(TournamentRegistration)
+class TournamentRegistrationAdmin(admin.ModelAdmin):
+    list_display = ('team', 'tournament', 'user', 'status', 'created_at')
+    list_filter = ('status', 'tournament')
+    search_fields = ('team__name', 'user__email', 'tournament__name')
+    actions = ['approve_registrations', 'reject_registrations']
+
+    def approve_registrations(self, request, queryset):
+        updated = queryset.filter(status='pending').update(status='approved')
+        self.message_user(request, f'{updated} registration(s) approved.')
+    approve_registrations.short_description = '✅ Approve selected registrations'
+
+    def reject_registrations(self, request, queryset):
+        updated = queryset.filter(status='pending').update(status='rejected')
+        self.message_user(request, f'{updated} registration(s) rejected.')
+    reject_registrations.short_description = '❌ Reject selected registrations'
+
+

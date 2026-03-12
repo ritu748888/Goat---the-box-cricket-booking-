@@ -13,7 +13,7 @@
         {% endfor %}
     {% endif %}
 
-    <form method="post" style="background:#fff; padding:2rem; border:1px solid #ddd; border-radius:5px;">
+    <form method="post" enctype="multipart/form-data" style="background:#fff; padding:2rem; border:1px solid #ddd; border-radius:5px;">
         {% csrf_token %}
         
         <div class="form-group">
@@ -30,6 +30,15 @@
             {% if form.description.errors %}
                 <div class="error-message">{{ form.description.errors }}</div>
             {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_poster">Poster Image</label>
+            {{ form.poster }}
+            {% if form.poster.errors %}
+                <div class="error-message">{{ form.poster.errors }}</div>
+            {% endif %}
+            <p style="font-size:0.9rem; color:#666; margin-top:0.25rem;">Optional: Upload a poster image for this tournament.</p>
         </div>
 
         <div class="form-row">

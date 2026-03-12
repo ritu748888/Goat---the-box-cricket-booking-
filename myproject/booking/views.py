@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import BookingForm, AdvertisementForm, TournamentForm, TournamentSponsorForm
-from .models import Booking, Court, Venue, Advertisement, Tournament, TournamentSponsor, Payment
+from .forms import BookingForm, AdvertisementForm, TournamentForm, TournamentRegistrationForm
+from .models import Booking, Court, Venue, Advertisement, Tournament, TournamentSponsor, Sponsor, Team, TournamentRegistration, Payment
 from django.contrib import messages
 from django.utils import timezone
 from datetime import date
@@ -11,8 +11,10 @@ from . import utils
 
 
 def _is_admin(user):
-    # treat superusers and the configured admin email as administrators
-    return user.is_authenticated and (user.is_superuser or user.email == getattr(settings, 'ADMIN_EMAIL', ''))
+    # treat superusers, staff accounts, and the configured admin email as administrators
+    return user.is_authenticated and (
+        user.is_superuser or user.is_staff or user.email == getattr(settings, 'ADMIN_EMAIL', '')
+    )
 
 
 admin_required = user_passes_test(_is_admin)
@@ -153,10 +155,28 @@ def venue_detail(request, pk):
 
 def advertise_page(request):
     if request.method == 'POST':
-        form = AdvertisementForm(request.POST)
+        form = AdvertisementForm(request.POST, request.FILES)
         if form.is_valid():
             advertisement = form.save()
-            messages.success(request, f'Thank you {form.cleaned_data["brand_name"]}! Your advertisement request has been submitted. We will review and contact you shortly.')
+
+            # Create a payment record (admin can review/confirm later)
+            amount = getattr(settings, 'ADVERTISEMENT_FEE', 0)
+            payment = Payment.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                transaction_id=str(uuid.uuid4()),
+                transaction_type='advertisement',
+                advertisement=advertisement,
+                amount=amount,
+                payment_method=form.cleaned_data.get('payment_method'),
+                status='pending'
+            )
+
+            proof = form.cleaned_data.get('payment_proof')
+            if proof:
+                payment.payment_proof = proof
+                payment.save()
+
+            messages.success(request, 'Thank you! Your advertisement has been submitted. An admin will review and activate it soon.')
             return redirect('advertise_success')
     else:
         form = AdvertisementForm()
@@ -168,15 +188,17 @@ def advertise_success(request):
 
 
 def tournament_list(request):
-    tournaments = Tournament.objects.filter(start_date__gte=date.today()).order_by('start_date')
+    # Show tournaments that are upcoming or currently ongoing
+    tournaments = Tournament.objects.filter(status__in=['upcoming', 'ongoing']).order_by('start_date')
     return render(request, 'booking/tournaments.html', {'tournaments': tournaments})
 
 
 @login_required
+@admin_required
 def tournament_create(request):
     """Create a new tournament."""
     if request.method == 'POST':
-        form = TournamentForm(request.POST)
+        form = TournamentForm(request.POST, request.FILES)
         if form.is_valid():
             tournament = form.save()
             messages.success(request, f'Tournament "{tournament.name}" has been created successfully!')
@@ -189,32 +211,104 @@ def tournament_create(request):
 def tournament_detail(request, pk):
     """Show tournament details and sponsors."""
     tournament = get_object_or_404(Tournament, pk=pk)
-    sponsors = tournament.sponsors.filter(status='approved')
-    sponsor_form = TournamentSponsorForm() if request.user.is_authenticated else None
-    
-    if request.method == 'POST' and request.user.is_authenticated:
-        sponsor_form = TournamentSponsorForm(request.POST)
-        if sponsor_form.is_valid():
-            sponsor = sponsor_form.save(commit=False)
-            sponsor.tournament = tournament
-            # Check if this sponsor already exists
-            existing = TournamentSponsor.objects.filter(
-                tournament=tournament,
-                sponsor_name=sponsor.sponsor_name
-            ).first()
-            if existing:
-                messages.warning(request, f'{sponsor.sponsor_name} is already a sponsor for this tournament.')
-            else:
-                sponsor.save()
-                messages.success(request, 'Thank you for your interest in sponsoring! Your sponsorship request has been submitted. Admin will review and contact you shortly.')
-                return redirect('tournament_detail', pk=tournament.pk)
-    
+    sponsors = tournament.sponsors.select_related('sponsor').filter(is_active=True, sponsor__isnull=False)
+
+    # Show detailed registration info only to admins
+    is_admin = _is_admin(request.user)
+    registrations = tournament.registrations.select_related('team', 'user') if is_admin else None
+
     context = {
         'tournament': tournament,
         'sponsors': sponsors,
-        'sponsor_form': sponsor_form,
+        'is_admin': is_admin,
+        'registrations': registrations,
     }
     return render(request, 'booking/tournament_detail.html', context)
+
+
+@admin_required
+def team_detail(request, pk):
+    """Show detailed team registration info for admins."""
+    team = get_object_or_404(Team, pk=pk)
+    registration = TournamentRegistration.objects.filter(team=team).select_related('tournament', 'user').first()
+
+    return render(request, 'booking/team_detail.html', {
+        'team': team,
+        'registration': registration,
+    })
+
+
+@login_required
+def tournament_register(request, pk):
+    """Allows a logged-in user to register a team for a tournament."""
+    tournament = get_object_or_404(Tournament, pk=pk)
+
+    if not tournament.registration_open:
+        messages.error(request, 'Registration for this tournament is currently closed.')
+        return redirect('tournament_detail', pk=tournament.pk)
+
+    # Prevent duplicate registrations by the same user
+    if TournamentRegistration.objects.filter(tournament=tournament, user=request.user).exists():
+        messages.warning(request, 'You have already registered a team for this tournament.')
+        return redirect('tournament_detail', pk=tournament.pk)
+
+    if request.method == 'POST':
+        form = TournamentRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Ensure we still have available slots
+            if tournament.approved_registrations_count >= tournament.max_teams:
+                messages.error(request, 'Registration is full for this tournament.')
+                return redirect('tournament_detail', pk=tournament.pk)
+
+            team = Team.objects.create(
+                name=form.cleaned_data['team_name'],
+                captain_name=form.cleaned_data['captain_name'],
+                contact_number=form.cleaned_data['contact_number'],
+                player_list=form.cleaned_data['player_list'],
+                created_by=request.user
+            )
+
+            registration = TournamentRegistration.objects.create(
+                tournament=tournament,
+                team=team,
+                user=request.user,
+                status='pending'
+            )
+
+            payment = Payment.objects.create(
+                user=request.user,
+                transaction_id=str(uuid.uuid4()),
+                transaction_type='tournament_registration',
+                tournament=tournament,
+                registration=registration,
+                amount=tournament.entry_fee,
+                payment_method=form.cleaned_data['payment_method'],
+                status='pending'
+            )
+
+            proof = form.cleaned_data.get('payment_proof')
+            if proof:
+                payment.payment_proof = proof
+                payment.save()
+
+            messages.success(request, 'Your team has been registered successfully. Awaiting admin approval after payment review.')
+            # Notify admin (optional)
+            utils.notify_admin_generic(
+                subject=f"New tournament registration: {tournament.name}",
+                message=f"User {request.user.email} registered team '{team.name}' for tournament '{tournament.name}'."
+            )
+
+            return redirect('tournament_registration_success', pk=registration.pk)
+    else:
+        form = TournamentRegistrationForm()
+
+    return render(request, 'booking/tournament_register.html', {'tournament': tournament, 'form': form})
+
+
+@login_required
+def tournament_registration_success(request, pk):
+    registration = get_object_or_404(TournamentRegistration, pk=pk, user=request.user)
+    return render(request, 'booking/tournament_registration_success.html', {'registration': registration})
 
 
 @admin_required
@@ -226,16 +320,22 @@ def admin_dashboard(request):
     confirmed_bookings = Booking.objects.filter(status='confirmed').order_by('-created_at')
     # Cancelled bookings
     cancelled_bookings = Booking.objects.filter(status='cancelled').order_by('-created_at')
-    # pending advertisements
-    ads = Advertisement.objects.filter(status='pending').order_by('-created_at')
+    # advertisements that are not active (i.e., pending activation)
+    pending_ads = Advertisement.objects.filter(is_active=False).order_by('-created_at')
+    # advertisements that are active (showing on site)
+    active_ads = Advertisement.objects.filter(is_active=True).order_by('-created_at')
     # tournaments (show upcoming/ongoing as admin-manageable)
     tournaments = Tournament.objects.filter(status__in=['upcoming', 'ongoing']).order_by('-created_at')
+    # pending tournament registrations (after payment info submitted)
+    pending_registrations = TournamentRegistration.objects.filter(status='pending').order_by('-created_at')
     context = {
         'pending_payment_bookings': pending_payment_bookings,
         'confirmed_bookings': confirmed_bookings,
         'cancelled_bookings': cancelled_bookings,
-        'ads': ads,
+        'pending_ads': pending_ads,
+        'active_ads': active_ads,
         'tournaments': tournaments,
+        'pending_registrations': pending_registrations,
     }
     return render(request, 'booking/admin_dashboard.html', context)
 
@@ -265,15 +365,17 @@ def admin_update_booking(request, pk, action):
 def admin_update_advertisement(request, pk, action):
     ad = get_object_or_404(Advertisement, pk=pk)
     if action == 'approve':
-        ad.status = 'approved'
+        ad.is_active = True
         ad.save()
-        utils.notify_advertisement_status(ad, approved=True)
-        messages.success(request, 'Advertisement approved and applicant notified.')
+        messages.success(request, 'Advertisement activated.')
     elif action == 'reject':
-        ad.status = 'rejected'
+        ad.is_active = False
         ad.save()
-        utils.notify_advertisement_status(ad, approved=False)
-        messages.info(request, 'Advertisement rejected and applicant notified.')
+        messages.info(request, 'Advertisement deactivated.')
+    elif action == 'remove':
+        ad.delete()
+        messages.success(request, 'Advertisement removed.')
+        return redirect('admin_dashboard')
     else:
         messages.warning(request, 'Unknown action')
     return redirect('admin_dashboard')
@@ -299,16 +401,16 @@ def admin_update_tournament(request, pk, action):
 
 @admin_required
 def admin_update_tournament_sponsor(request, pk, action):
-    """Approve or reject a tournament sponsorship request."""
-    sponsor = get_object_or_404(TournamentSponsor, pk=pk)
+    """Enable or disable a tournament sponsor."""
+    sponsorship = get_object_or_404(TournamentSponsor, pk=pk)
     if action == 'approve':
-        sponsor.status = 'approved'
-        sponsor.save()
-        messages.success(request, f'{sponsor.sponsor_name} has been approved as a sponsor for {sponsor.tournament.name}.')
+        sponsorship.is_active = True
+        sponsorship.save()
+        messages.success(request, f'{sponsorship.sponsor.name} is now active for {sponsorship.tournament.name}.')
     elif action == 'reject':
-        sponsor.status = 'rejected'
-        sponsor.save()
-        messages.info(request, f'Sponsorship request from {sponsor.sponsor_name} has been rejected.')
+        sponsorship.is_active = False
+        sponsorship.save()
+        messages.info(request, f'{sponsorship.sponsor.name} has been deactivated for {sponsorship.tournament.name}.')
     else:
         messages.warning(request, 'Unknown action')
     return redirect('admin_dashboard')
@@ -316,3 +418,28 @@ def admin_update_tournament_sponsor(request, pk, action):
 
 def about_page(request):
     return render(request, 'booking/about.html')
+
+
+@admin_required
+def admin_update_registration(request, pk, action):
+    """Approve or reject a tournament registration."""
+    registration = get_object_or_404(TournamentRegistration, pk=pk)
+
+    if action == 'approve':
+        registration.status = 'approved'
+        registration.save()
+        # mark payment as completed (if present)
+        if getattr(registration, 'payment', None):
+            registration.payment.status = 'completed'
+            registration.payment.save()
+        messages.success(request, f"Registration for '{registration.team.name}' approved.")
+    elif action == 'reject':
+        registration.status = 'rejected'
+        registration.save()
+        if getattr(registration, 'payment', None):
+            registration.payment.status = 'cancelled'
+            registration.payment.save()
+        messages.info(request, f"Registration for '{registration.team.name}' rejected.")
+    else:
+        messages.warning(request, 'Unknown action')
+    return redirect('admin_dashboard')

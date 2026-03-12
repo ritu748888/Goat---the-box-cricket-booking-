@@ -67,6 +67,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'myproject.context_processors.admin_email',
+                'booking.context_processors.active_ads',
             ],
         },
     },

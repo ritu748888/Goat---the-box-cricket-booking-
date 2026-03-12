@@ -30,6 +30,19 @@
         <a href="/login/">Login</a>
     {% endif %}
 </nav>
+
+{% if active_ads.HOME_TOP %}
+    <div style="margin: 1rem auto; max-width: 960px; display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+        {% for ad in active_ads.HOME_TOP %}
+            {% if ad.image %}
+                <a href="{{ ad.link|default:'#' }}" target="_blank" style="display:block; width:100%; max-width:728px; border: 1px solid #eee; border-radius: 8px; overflow:hidden;">
+                    <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="width:100%; height:auto; display:block;" />
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+
 <script src="{% static 'js/main.js' %}"></script>
 
 {% if messages %}
@@ -47,6 +60,18 @@
 
 {% block content %}
 {% endblock %}
+
+{% if active_ads.HOME_BOTTOM %}
+    <div style="margin: 2rem auto; max-width: 960px; display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+        {% for ad in active_ads.HOME_BOTTOM %}
+            {% if ad.image %}
+                <a href="{{ ad.link|default:'#' }}" target="_blank" style="display:block; width:100%; max-width:728px; border: 1px solid #eee; border-radius: 8px; overflow:hidden;">
+                    <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="width:100%; height:auto; display:block;" />
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
 
 </body>
 </html>

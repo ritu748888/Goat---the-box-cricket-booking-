@@ -42,6 +42,43 @@
         {% endif %}
     </div>
 
+    <!-- PENDING TOURNAMENT REGISTRATIONS -->
+    <div style="background: #fff3cd; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border-left: 5px solid #ffc107;">
+        <h2 style="color: #856404; margin-top: 0;">⏳ Pending Tournament Registrations ({{ pending_registrations.count }})</h2>
+        <p style="color: #856404; margin-bottom: 1rem;">These registrations have payment proof submitted and are waiting for your approval:</p>
+        {% if pending_registrations %}
+            <table class="booking-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #ffeaa7;">
+                        <th>Team</th>
+                        <th>Tournament</th>
+                        <th>User</th>
+                        <th>Fee</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in pending_registrations %}
+                    <tr style="border-bottom:1px solid #ddd;">
+                        <td>{{ reg.team.name }}</td>
+                        <td>{{ reg.tournament.name }}</td>
+                        <td>{{ reg.user.email }}</td>
+                        <td>₹{{ reg.tournament.entry_fee }}</td>
+                        <td>{{ reg.created_at|date:'M d, Y H:i' }}</td>
+                        <td>
+                            <a class="btn" style="background:#28a745; padding: 0.5rem 1rem; text-decoration: none; color: white; border-radius: 3px;" href="{% url 'admin_update_registration' reg.pk 'approve' %}">✓ Approve</a>
+                            <a class="btn" style="background:#f44336; padding: 0.5rem 1rem; text-decoration: none; color: white; border-radius: 3px; margin-left: 0.5rem;" href="{% url 'admin_update_registration' reg.pk 'reject' %}">✗ Reject</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #856404; font-style: italic;">No tournament registrations awaiting approval.</p>
+        {% endif %}
+    </div>
+
     <!-- CONFIRMED BOOKINGS -->
     <div style="margin-bottom: 2rem;">
         <h2 style="color: #155724;">✓ Confirmed Bookings ({{ confirmed_bookings.count }})</h2>
@@ -103,73 +140,68 @@
 
 <div class="container" style="margin-top: 2rem;">
     <h2>Pending Advertisements</h2>
-    {% if ads %}
+    {% if pending_ads %}
         <table style="width:100%; border-collapse: collapse;">
             <thead>
                 <tr>
-                    <th>Brand</th>
-                    <th>Contact</th>
-                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Position</th>
+                    <th>Period</th>
                     <th>Submitted</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for a in ads %}
+                {% for a in pending_ads %}
                 <tr style="border-bottom:1px solid #ccc;">
-                    <td>{{ a.brand_name }}</td>
-                    <td>{{ a.contact_person_name }}<br>{{ a.email }}<br>{{ a.mobile_no }}</td>
-                    <td>{{ a.get_promotion_type_display }}</td>
+                    <td>{{ a.title }}</td>
+                    <td>{{ a.get_position_display }}</td>
+                    <td>{{ a.start_date }} - {{ a.end_date }}</td>
                     <td>{{ a.created_at }}</td>
                     <td>
-                        <a class="btn" href="{% url 'admin_update_advertisement' a.pk 'approve' %}">Approve</a>
-                        <a class="btn" style="background:#f44336;" href="{% url 'admin_update_advertisement' a.pk 'reject' %}">Reject</a>
+                        <a class="btn" href="{% url 'admin_update_advertisement' a.pk 'approve' %}">Activate</a>
+                        <a class="btn" style="background:#f44336;" href="{% url 'admin_update_advertisement' a.pk 'remove' %}">Remove</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p>No advertisement requests.</p>
+        <p>No advertisements awaiting activation.</p>
     {% endif %}
 </div>
 
 <div class="container" style="margin-top: 2rem;">
-    <h2>Tournaments</h2>
-    {% if tournaments %}
+    <h2>Active Advertisements</h2>
+    {% if active_ads %}
         <table style="width:100%; border-collapse: collapse;">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Venue</th>
-                    <th>Dates</th>
-                    <th>Contact</th>
-                    <th>Status</th>
+                    <th>Title</th>
+                    <th>Position</th>
+                    <th>Period</th>
+                    <th>Activated</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for t in tournaments %}
+                {% for a in active_ads %}
                 <tr style="border-bottom:1px solid #ccc;">
-                    <td>{{ t.name }}</td>
-                    <td>{{ t.venue.name }}</td>
-                    <td>{{ t.start_date }} - {{ t.end_date }}</td>
-                    <td>{{ t.contact_person }}<br>{{ t.contact_email }}<br>{{ t.contact_phone }}</td>
-                    <td>{{ t.get_status_display }}</td>
+                    <td>{{ a.title }}</td>
+                    <td>{{ a.get_position_display }}</td>
+                    <td>{{ a.start_date }} - {{ a.end_date }}</td>
+                    <td>{{ a.created_at }}</td>
                     <td>
-                        {% if t.status != 'cancelled' %}
-                            <a class="btn" href="{% url 'admin_update_tournament' t.pk 'confirm' %}">Confirm</a>
-                            <a class="btn" style="background:#f44336;" href="{% url 'admin_update_tournament' t.pk 'reject' %}">Reject</a>
-                        {% else %}
-                            &mdash;
-                        {% endif %}
+                        <a class="btn" style="background:#f44336;" href="{% url 'admin_update_advertisement' a.pk 'reject' %}">Deactivate</a>
+                        <a class="btn" style="background:#777;" href="{% url 'admin_update_advertisement' a.pk 'remove' %}">Remove</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p>No tournaments to manage.</p>
+        <p>No active advertisements at the moment.</p>
     {% endif %}
 </div>
+
 {% endblock %}
