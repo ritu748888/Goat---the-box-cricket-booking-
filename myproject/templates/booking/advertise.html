@@ -141,6 +141,21 @@
                     Phone: <strong>+91 98765 43210</strong>
                 </p>
             </div>
+
+            {% if active_ads.SIDEBAR %}
+                <div style="margin-top: 2rem; padding: 1.5rem; background-color: #fff; border: 1px solid #ddd; border-radius: 4px;">
+                    <h5 style="margin-top:0;">Current Sidebar Ads</h5>
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        {% for ad in active_ads.SIDEBAR %}
+                            {% if ad.image %}
+                                <a href="{{ ad.link|default:'#' }}" target="_blank" style="display:block; border: 1px solid #eee; border-radius: 8px; overflow:hidden;">
+                                    <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="width:100%; height:auto; display:block;" />
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

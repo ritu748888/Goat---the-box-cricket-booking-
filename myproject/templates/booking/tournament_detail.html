@@ -2,6 +2,18 @@
 
 {% block content %}
 <div class="container" style="max-width:900px; margin:2rem auto;">
+    {% if active_ads.TOURNAMENT_PAGE %}
+        <div style="margin-bottom: 1.5rem; display:flex; flex-wrap:wrap; gap:1rem; justify-content:center;">
+            {% for ad in active_ads.TOURNAMENT_PAGE %}
+                {% if ad.image %}
+                    <a href="{{ ad.link|default:'#' }}" target="_blank" style="display:block; width:100%; max-width:728px; border: 1px solid #eee; border-radius: 8px; overflow:hidden;">
+                        <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="width:100%; height:auto; display:block;" />
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div style="display: flex; gap: 2rem; align-items: flex-start;">
         <div style="flex: 1;">
             {% if tournament.poster %}
@@ -126,6 +138,21 @@
                     {% else %}
                         <p>No registrations yet.</p>
                     {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="flex: 0.7; min-width: 240px;">
+            {% if active_ads.SIDEBAR %}
+                <div style="position: sticky; top: 1rem;">
+                    <h3 style="margin-top: 0;">Sponsored</h3>
+                    {% for ad in active_ads.SIDEBAR %}
+                        {% if ad.image %}
+                            <a href="{{ ad.link|default:'#' }}" target="_blank" style="display:block; margin-bottom: 1rem; border: 1px solid #eee; border-radius: 8px; overflow:hidden;">
+                                <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="width:100%; height:auto; display:block;" />
+                            </a>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             {% endif %}
         </div>
